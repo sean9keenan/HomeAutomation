@@ -1,0 +1,30 @@
+{
+  "name": "linkAutomation",
+  "version": "0.1.0-0",
+  "dependencies": {
+    "websocket-server": ">= 0.0.1",
+    "jquery": ">= 0.0.1",
+    "socket.io": ">= 0.0.1",
+    "mongoose": ">=0.0.1"
+  },
+  "domains": [
+    "pixelboard.in",
+    "www.pixelboard.in"
+  ],
+  "scripts": {
+    "start": "node server.js"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  },
+  "author": "Sean Keenan <linkSean@skeenan.com> (http://skeenan.com)",
+  "description": "Better, cheaper home automation",
+  "homepage": "http://link.skeenan.com",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sean9keenan/HomeAutomation.git"
+  },
+  "subdomain": "homeAutomation"
+}
