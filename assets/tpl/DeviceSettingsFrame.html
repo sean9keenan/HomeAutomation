@@ -1,0 +1,50 @@
+<form class="form-horizontal">
+  <legend class='title'>Legend</legend>
+  <!-- <i class="icon-pencil" style='display: inline'></i> -->
+  <div class="control-group">
+    <label class="control-label" for="name">Name</label>
+    <div class="controls">
+      <input type="text" id="name" placeholder="Enter the name of your device">
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="inputPinNum">Pin Number</label>
+    <div class="controls">
+      <input type="number" id="inputPinNum" placeholder="Pin number for device">
+    </div>
+  </div>
+  <div class="control-group">
+    <div class="controls">
+      <label class="checkbox">
+        <input id="dashboardCheck" type="checkbox"> Display on Dashboard
+      </label>
+    </div>
+  </div>
+  <div class="control-group">
+    <div class="controls">
+      <a data-toggle='modal' href="#myModal" class="btn btn-danger" style="width:224px; padding-left: 0px; padding-right: 0px">Delete</a>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button type="button" id="saveChanges" class="btn btn-primary">Save changes</button>
+    <a type="button" href="#devices" class="btn">Cancel</a>
+
+  </div>
+</form>
+
+
+<!-- Delete Window -->
+
+<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none; top: 20%; margin-top: 0px;">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Are you sure?</h3>
+  </div>
+  <div class="modal-body">
+    You won't be able to undo this.
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal">Cancel!</button>
+    <button class="btn btn-danger deleteButton" data-dismiss="modal">Yes. Delete.</button>
+  </div>
+</div>
