@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include <Ethernet.h>
 #include <SPI.h>
-#include <WebSocketClient.h>
+#include "WebSocketClient.h"
 
 char deviceId[] = "deviceId: 1";
 
@@ -10,11 +10,8 @@ char server[] = "xp.skeenan.com";//"echo.websocket.org";//
 WebSocketClient client;
 
 boolean onMacbook = true;
-byte macIp[] = { 192, 168, 2, 3 };
+byte macIp[] = { 192, 168, 2, 8 };
 byte googDns[] = { 8, 8, 8, 8 };
-
-//used as a boolean array
-unsigned int activeDigStreamPins = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -27,8 +24,6 @@ void loop() {
   
   client.monitor();
   
-  streamPins();
-  
   if (!client.connected()){
     openConnection();
   }
@@ -37,19 +32,19 @@ void loop() {
 String nullString = String("null");
 
 void dataArrived(WebSocketClient client, String data) {
-//  Serial.println("Data Arrived: " + data);
+  Serial.println("Data Arrived: " + data);
   String pin = extractParameter(data, "pin");
-//  Serial.println("Pin is: " + pin);
+  Serial.println("Pin is: " + pin);
   if (!pin.equals(nullString)) {
     char pinChar[pin.length() + 1];
     pin.toCharArray(pinChar, pin.length()+1);
     int pinNum = atoi(pinChar);
-//    Serial.println(pin + "::" + pinNum);
+    Serial.println(pin + "::" + pinNum);
     String value = extractParameter(data, "value");
-//    Serial.println("Value is: " + value);
+    Serial.println("Value is: " + value);
     
     String cmd = extractParameter(data, "cmd");
-//    Serial.println("Cmd is: " + cmd);
+    Serial.println("Cmd is: " + cmd);
     if (cmd.equals("initPin")){
       if (value.equals("output")) {
         Serial.println("Set Pin Output");
@@ -66,28 +61,6 @@ void dataArrived(WebSocketClient client, String data) {
         Serial.println("Set Pin Low");
         digitalWrite(pinNum, LOW);
       }
-    } else if (cmd.equals("setThreshold")){
-      
-    } else if (cmd.equals("setStream")){
-      if (value.equals("on")){
-        activeDigStreamPins = activeDigStreamPins | (1 << pinNum);
-        Serial.println(String("Set Stream On:") + activeDigStreamPins);
-      } else if (value.equals("off")) {
-        activeDigStreamPins = activeDigStreamPins & (~(1 << pinNum));
-        Serial.println(String("Set Stream Off:") + activeDigStreamPins);
-      }
-    }
-  }
-}
-
-void streamPins() {
-  for (int i=0; i < 14; i++) {
-    //Serial.println(String("Blah") + (activeDigStreamPins &  (1 << i)));
-    if ((activeDigStreamPins &  (1 << i)) != 0) {
-      int readVal = digitalRead(i);
-      String outString = String("Stream;pin=") + i + String(";value=") + readVal + String(";");
-      //Serial.println(outString);
-      client.send(outString);
     }
   }
 }

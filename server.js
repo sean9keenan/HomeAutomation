@@ -146,17 +146,18 @@ var server = ws.createServer();
 
 server.addListener("connection", function(connection){
   console.log('connect!')
+
+  server.send(connection.id, "cmd:initPin;pin:8;value:input");
+  //server.send(connection.id, "cmd:setStream;pin:8;value:on");
+
+  arduinoUpdateAllDevices();
+  
   arduinoCallback = function(msg) {
     server.send(connection.id, msg);
   };
   connection.addListener("message", function(msg){
     console.log("msg!" + msg)
     // server.send(connection.id, msg);
-
-    server.send(connection.id, "cmd:initPin;pin:20;value:output");
-    server.send(connection.id, "cmd:setPin;pin:20;value:on");
-
-    arduinoUpdateAllDevices();
 
   });
 });
@@ -174,7 +175,9 @@ function sendToArduino(device, needPinInit){
   if (device.completed) {
     value = "on"
   }
-  arduinoCallback("cmd:setPin;pin:" + pin + ";value:" + value);
+  if (arduinoCallback != null){
+    arduinoCallback("cmd:setPin;pin:" + pin + ";value:" + value);
+  }
 }
 
 function arduinoUpdateAllDevices() {
