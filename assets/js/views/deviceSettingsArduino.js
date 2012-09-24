@@ -21,6 +21,7 @@ window.DeviceSettingsArduino = Backbone.View.extend({
     setDefaultType();
   },
   setDefaultType: function() {
+    //TODO: Select which you want to inflate
     this.defaultTypeView = new Window.DeviceSettingsLights(this.model);
     this.$('.defaultTypeViewContainer').hide().html(this.defaultTypeView.el).fadeIn(200);
   }
