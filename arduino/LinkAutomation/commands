@@ -1,0 +1,18 @@
+Fields:
+
+type, analog, cmd, pin
+
+cmd:
+
+initPin - type : ("output" or "input")
+
+setPin  - for digital, type   : ("on" or "off")
+        - for analog,  analog : int
+
+setThreshold - analog only
+        - type   : ("on" or "off")
+        - analog : int
+
+setStream - for digital, type : ("on" or "off")
+
+readPin - type : ("digital" or "analog")

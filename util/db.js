@@ -29,6 +29,10 @@ module.exports = function(conf) {
     completed   : Boolean,
     pinNum      : Number,
     dashboard   : Boolean,
+    arduino     : String,
+    value       : Number,
+    isAnalog    : Boolean,
+    isOutput    : Boolean,
 
     dateCreated : String, // var x = newDate(); x.toUTCString();
     dateModified: String, // ^

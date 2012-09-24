@@ -54,7 +54,6 @@ io.sockets.on('connection', function (socket) {
 
     var json = s;
 
-
     sendToArduino(s, true);
 
     socket.emit('devices:create', json);
@@ -147,9 +146,6 @@ var server = ws.createServer();
 server.addListener("connection", function(connection){
   console.log('connect!')
 
-  server.send(connection.id, "cmd:initPin;pin:8;value:input");
-  //server.send(connection.id, "cmd:setStream;pin:8;value:on");
-
   arduinoUpdateAllDevices();
   
   arduinoCallback = function(msg) {
@@ -168,7 +164,7 @@ server.listen(80);
 
 function sendToArduino(device, needPinInit){
   var pin = device.pinNum;
-  if (needPinInit){
+  if (needPinInit && arduinoCallback != null){
     arduinoCallback("cmd:initPin;pin:" + pin + ";value:output");
   }
   var value = "off";

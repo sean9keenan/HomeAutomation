@@ -3,6 +3,9 @@
 #include <SPI.h>
 #include <WebSocketClient.h>
 
+#define DIGITAL_PINS 14
+#define ANALOG_PINS 4
+
 char deviceId[] = "deviceId: 1";
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
@@ -13,8 +16,18 @@ boolean onMacbook = true;
 byte macIp[] = { 192, 168, 2, 3 };
 byte googDns[] = { 8, 8, 8, 8 };
 
-//used as a boolean array
+// TODO: Change the activeStreamPins to arrays based on their DIGITAL_PINS
+// and ANALOG_PINS respectively
+
+// used as a boolean array CAN be changed to _any_ 
+// size data structure, 1 bit at least needed for each digital pin
 unsigned int activeDigStreamPins = 0;
+
+// used as a boolean array CAN be changed to _any_ 
+// size data structure, 1 bit at least needed for each analog pin
+unsigned int activeAngStreamPins = 0;
+
+int analogThresholdArray[ANALOG_PINS];
 
 void setup() {
   Serial.begin(9600);
@@ -45,50 +58,105 @@ void dataArrived(WebSocketClient client, String data) {
     pin.toCharArray(pinChar, pin.length()+1);
     int pinNum = atoi(pinChar);
 //    Serial.println(pin + "::" + pinNum);
-    String value = extractParameter(data, "value");
-//    Serial.println("Value is: " + value);
+    String type = extractParameter(data, "type");
+//    Serial.println("Type is: " + type);
+
+    String analogStr = extractParameter(data, "analog");
+    int analog = -1;   //Should NOT be used as a flag for invalid analog
+                      //Instead use analogStr.equals(nullString)
+    if (!analogStr.equals(nullString)){
+      char analogChar[analogStr.length() + 1];
+      analogStr.toCharArray(valueChar, pin.length()+1);
+      analog = atoi(analogChar);
+    }
     
     String cmd = extractParameter(data, "cmd");
 //    Serial.println("Cmd is: " + cmd);
     if (cmd.equals("initPin")){
-      if (value.equals("output")) {
-        Serial.println("Set Pin Output");
+      if (type.equals("output")) {
+        // Serial.println("Set Pin Output");
         pinMode(pinNum, OUTPUT);
-      } else if (value.equals("input")) {
-        Serial.println("Set Pin Input");
+      } else if (type.equals("input")) {
+        // Serial.println("Set Pin Input");
         pinMode(pinNum, INPUT);
       }
     } else if (cmd.equals("setPin")){
-      if (value.equals("on")) {
-        Serial.println("Set Pin High");
+      if (type.equals("on")) {
+        // Serial.println("Set Pin High");
         digitalWrite(pinNum, HIGH);
-      } else if (value.equals("off")) {
-        Serial.println("Set Pin Low");
+      } else if (type.equals("off")) {
+        // Serial.println("Set Pin Low");
         digitalWrite(pinNum, LOW);
+      } else if (!analogStr.equals(nullString)) {
+        analogWrite(pinNum, analog);
       }
     } else if (cmd.equals("setThreshold")){
+      if (type.equals("on") && !analogStr.equals(nullString)){
+        activeAngStreamPins = activeDigStreamPins | (1 << pinNum);
+        analogThresholdArray[pinNum] = analog;
+        readAndOutputAnalogPin(pinNum, true);
+      } else if type.equals("off"){
+        activeAngStreamPins = activeDigStreamPins & (~(1 << pinNum));
+      }
       
     } else if (cmd.equals("setStream")){
-      if (value.equals("on")){
+      if (type.equals("on")){
         activeDigStreamPins = activeDigStreamPins | (1 << pinNum);
         Serial.println(String("Set Stream On:") + activeDigStreamPins);
-      } else if (value.equals("off")) {
+        readAndOutputPin(pinNum, true);
+
+      } else if (type.equals("off")) {
         activeDigStreamPins = activeDigStreamPins & (~(1 << pinNum));
         Serial.println(String("Set Stream Off:") + activeDigStreamPins);
+      } 
+    } else if (cmd.equals("readPin")){
+      if (type.equals("digital")) {
+        readAndOutputPin(pinNum, true);
+      } else if (type.equals("analog")) {
+        readAndOutputAnalogPin(pinNum, true);
       }
     }
   }
 }
 
+int currentState = 0;
+
 void streamPins() {
-  for (int i=0; i < 14; i++) {
-    //Serial.println(String("Blah") + (activeDigStreamPins &  (1 << i)));
-    if ((activeDigStreamPins &  (1 << i)) != 0) {
-      int readVal = digitalRead(i);
-      String outString = String("Stream;pin=") + i + String(";value=") + readVal + String(";");
-      //Serial.println(outString);
-      client.send(outString);
+  for (int i=0; i < DIGITAL_PINS; i++) {
+    //Serial.println(String("Streaming Pin") + (activeDigStreamPins &  (1 << i)));
+    if ((activeDigStreamPins & (1 << i)) != 0) {
+      readAndOutputPin(i, false);
     }
+  }
+  for (int i=0; i < ANALOG_PINS; i++) {
+    if ((activeAngStreamPins & (1 << i)) != 0) {
+      readAndOutputAnalogPin(i, false);
+    }
+  }
+}
+
+void readAndOutputPin(int pin, boolean isForced) {
+  int readVal = digitalRead(pin);
+  if (isForced || currentState & (1 << i) != (readVal << i)) {
+    currentState &= ~(1 << pin);
+    currentState |= (readVal << pin);
+    String outString = String("Stream;pin=") + i + String(";value=") + readVal + String(";");
+    //Serial.println("Sending Out: " + outString);
+    client.send(outString);
+  }
+}
+
+unsigned int analogCurrentState = 0;
+
+void readAndOutputAnalogPin(int pin, boolean isForced) {
+  int readVal = analogRead(pin);
+  int binaryRep = (readVal > analogThresholdArray[pin])?(1:0);
+  if (isForced || (analogCurrentState & (1 << pin) != (binaryRep << i)) {
+    analogCurrentState &= ~(1 << pin);
+    analogCurrentState |= (binaryRep << pin);
+    String outString = String("AnalogStream;pin=") + i + String(";value=") + readVal + String(";");
+    //Serial.println("Sending Out: " + outString);
+    client.send(outString);
   }
 }
 
