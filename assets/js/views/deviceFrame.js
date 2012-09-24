@@ -84,7 +84,8 @@ window.DeviceSettingsFrameHolder = Backbone.View.extend({
     var self = this;
 
     if (this.targetID == null){
-      $(this.el).html('<p>Dude, click on some links on the left, more content will be coming here eventually</p>');
+      this.deviceContent = new window.deviceSettingsMain();
+      $(this.el).hide().html(this.deviceContent.el).fadeIn(200); 
     } else {
       this.devices.each(function (device) {
         self.addDevice(device);

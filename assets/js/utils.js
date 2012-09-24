@@ -7,6 +7,7 @@ window.templateLoader = {
 
     //TODO: Want last Index of
     var indexOfSlash = views.indexOf("//")
+    var dir = "";
     if (indexOfSlash != -1){
       //TODO: Um, make this work. Yup.
       dir = views[0, indexOfSlash + 1];

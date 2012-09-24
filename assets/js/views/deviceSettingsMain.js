@@ -1,7 +1,7 @@
-window.LoggedInDropdownView = Backbone.View.extend({
+window.DeviceSettingsMain = Backbone.View.extend({
 
     initialize:function () {
-        console.log('Initializing Logged In Dropdown View');
+        console.log('Initializing Main Settings View');
     },
 
     render:function () {

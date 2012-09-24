@@ -313,7 +313,8 @@ window.DashboardItem = Backbone.View.extend({
 templateLoader.load(["ContactView", "HomeView", "HeaderView", "DashboardView", 
     "LoggedInDropdownView", "LoginDropdownView", "DeviceFrameView", "DashboardItem",
     "AddDeviceView", "DeviceNavItem", "NotFoundView", "DeviceSettingsFrame",
-    "DeviceSettings/DeviceSettingsArduino"],
+    "DeviceSettings/DeviceSettingsArduino", "DeviceSettings/DeviceSettingsAdvanced",
+    "DeviceSettings/DeviceSettingsMain"],
     function () {
         app = new Router();
         Backbone.history.start();
