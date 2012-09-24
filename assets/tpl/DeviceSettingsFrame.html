@@ -11,31 +11,17 @@
   <div class="control-group">
     <label class="control-label" for="selectDevice">Select Device</label>
     <div class="controls">
-      <select style="height: 27px; width: 224px;">
+      <select class='hostDeviceDropdown' style="height: 27px; width: 224px;">
         <option>Main Arduino</option>
       </select>
     </div>
   </div>
 
-  <hr>
-
-  <div class="control-group">
-    <label class="control-label" for="inputPinNum">Pin Number</label>
-    <div class="controls">
-      <input type="number" id="inputPinNum" placeholder="Pin number for device">
-    </div>
-  </div>
-  <div class="control-group">
-    <div class="controls">
-      <label class="checkbox">
-        <input id="dashboardCheck" type="checkbox"> Display on Dashboard
-      </label>
-    </div>
-  </div>
+  <div id="selectedDeviceFrame"></div>
 
   <div class="control-group">
     <div class="controls">
-    <button type="button" class="btn" data-toggle="collapse" data-target="#demo" style="width:224px; padding: 0px;">
+    <button type="button" class="btn" data-toggle="collapse" data-target="#demo" style="display:none; width:224px; padding: 0px;">
     Advanced Settings
     </button>
     </div>
@@ -52,6 +38,7 @@
     <a type="button" href="#devices" class="btn">Cancel</a>
 
   </div>
+
 </form>
 
 

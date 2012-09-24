@@ -1,13 +1,13 @@
  window.ContactView = Backbone.View.extend({
 
-    initialize:function () {
-        console.log('Initializing Contact View');
-    },
+  initialize:function () {
+    console.log('Initializing Contact View');
+  },
 
-    render:function () {
-        $(this.el).html(this.template());
-        return this;
-    },
+  render:function () {
+    $(this.el).html(this.template());
+    return this;
+  },
 
 
 });

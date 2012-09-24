@@ -35,7 +35,12 @@ window.DeviceFrameView = Backbone.View.extend({
       state: 'off',
       completed: false,
       pinNum: null,
-      dashboard: true
+      dashboard: true,
+      value: null,
+      hostDevice: null,
+      isAnalog: false,
+      isOutput: true,
+      defaultType: "light"
     };
     
     var _device = new Device(attrs);
@@ -116,16 +121,19 @@ window.DeviceSettingsFrame = Backbone.View.extend({
     'click .completeBtn': 'completeDevice',
     'click .deleteButton': 'deleteDevice',
     'click .btn#saveChanges': 'saveChanges',
-    'change .controls#name': 'saveChanges'
+    'change .controls#name': 'saveChanges',
+    'change .hostDeviceDropdown': 'setHostDevice'
   },
   initialize: function (model) {
     _.bindAll(this, 'setStatus', 'completeDevice', 'deleteDevice', 'setName',
-       'saveChanges', 'deviceDeleted', 'setPinNum', 'setDashboard');
+       'saveChanges', 'deviceDeleted', 'setPinNum', 'setDashboard',
+       'setHostDeviceFromSave', 'setHostDevice');
     this.model = model;
     this.model.bind('change:completed', this.setStatus);
     this.model.bind('change:name', this.setName);
     this.model.bind('change:pinNum', this.setPinNum);
     this.model.bind('change:dashboard', this.setDashboard);
+    this.model.bind('change:hostDevice', this.setHostDeviceFromSave);
     this.model.bind('delete', this.deviceDeleted);
     this.render();
     this.targetID = this.model.id;
@@ -137,6 +145,7 @@ window.DeviceSettingsFrame = Backbone.View.extend({
     this.setPinNum();
     this.setDashboard();
     this.setStatus();
+    this.setHostDeviceFromSave();
 
     $('#sidebarNav li').removeClass('active');
     $('#sidebarNav #'+this.model.id).addClass('active');
@@ -144,6 +153,16 @@ window.DeviceSettingsFrame = Backbone.View.extend({
     //this.$('#name').change(this.saveChanges());
 
     return this;
+  },
+  setHostDeviceFromSave: function() {
+    var hostDevice = this.model.get('hostDevice');
+    //TODO: Set the hostDeviceDropdown here....
+    setHostDevice();
+
+  },
+  setHostDevice: function() {
+    this.hostDeviceSettings = new Window.DeviceSettingsArduino(this.model);
+    this.$('.selectedDeviceFrame').hide().html(this.hostDeviceSettings.el).fadeIn(200); 
   },
   setDashboard: function() {
     var status = this.model.get('dashboard');
@@ -167,12 +186,7 @@ window.DeviceSettingsFrame = Backbone.View.extend({
   },
   setPinNum: function() {
     var pinNum = this.model.get('pinNum');
-    if (pinNum == 'New Device') {
-      this.$('#inputPinNum').val('');
-    } else {
-      this.$('#inputPinNum').val(pinNum);
-    }
-
+    this.$('#inputPinNum').val(pinNum);
   },
   setStatus: function () {
     var status = this.model.get('completed');
