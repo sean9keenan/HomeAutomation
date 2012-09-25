@@ -165,14 +165,14 @@ server.listen(80);
 function sendToArduino(device, needPinInit){
   var pin = device.pinNum;
   if (needPinInit && arduinoCallback != null){
-    arduinoCallback("cmd:initPin;pin:" + pin + ";value:output");
+    arduinoCallback("cmd:initPin;pin:" + pin + ";type:output");
   }
   var value = "off";
   if (device.completed) {
     value = "on"
   }
   if (arduinoCallback != null){
-    arduinoCallback("cmd:setPin;pin:" + pin + ";value:" + value);
+    arduinoCallback("cmd:setPin;pin:" + pin + ";type:" + value);
   }
 }
 

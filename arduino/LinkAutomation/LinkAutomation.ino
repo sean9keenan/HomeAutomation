@@ -40,7 +40,7 @@ void loop() {
   
   client.monitor();
   
-  streamPins();
+ // streamPins();
   
   if (!client.connected()){
     openConnection();
@@ -50,9 +50,9 @@ void loop() {
 String nullString = String("null");
 
 void dataArrived(WebSocketClient client, String data) {
-//  Serial.println("Data Arrived: " + data);
+  Serial.println("Data Arrived: " + data);
   String pin = extractParameter(data, "pin");
-//  Serial.println("Pin is: " + pin);
+  Serial.println("Pin is: " + pin);
   if (!pin.equals(nullString)) {
     char pinChar[pin.length() + 1];
     pin.toCharArray(pinChar, pin.length()+1);
@@ -66,7 +66,7 @@ void dataArrived(WebSocketClient client, String data) {
                       //Instead use analogStr.equals(nullString)
     if (!analogStr.equals(nullString)){
       char analogChar[analogStr.length() + 1];
-      analogStr.toCharArray(valueChar, pin.length()+1);
+      analogStr.toCharArray(analogChar, pin.length()+1);
       analog = atoi(analogChar);
     }
     
@@ -95,7 +95,7 @@ void dataArrived(WebSocketClient client, String data) {
         activeAngStreamPins = activeDigStreamPins | (1 << pinNum);
         analogThresholdArray[pinNum] = analog;
         readAndOutputAnalogPin(pinNum, true);
-      } else if type.equals("off"){
+      } else if (type.equals("off")){
         activeAngStreamPins = activeDigStreamPins & (~(1 << pinNum));
       }
       
@@ -137,10 +137,10 @@ void streamPins() {
 
 void readAndOutputPin(int pin, boolean isForced) {
   int readVal = digitalRead(pin);
-  if (isForced || currentState & (1 << i) != (readVal << i)) {
+  if (isForced || currentState & (1 << pin) != (readVal << pin)) {
     currentState &= ~(1 << pin);
     currentState |= (readVal << pin);
-    String outString = String("Stream;pin=") + i + String(";value=") + readVal + String(";");
+    String outString = String("Stream;pin=") + pin + String(";value=") + readVal + String(";");
     //Serial.println("Sending Out: " + outString);
     client.send(outString);
   }
@@ -150,11 +150,11 @@ unsigned int analogCurrentState = 0;
 
 void readAndOutputAnalogPin(int pin, boolean isForced) {
   int readVal = analogRead(pin);
-  int binaryRep = (readVal > analogThresholdArray[pin])?(1:0);
-  if (isForced || (analogCurrentState & (1 << pin) != (binaryRep << i)) {
+  int binaryRep = (readVal > analogThresholdArray[pin]) ? 1 : 0;
+  if (isForced || (analogCurrentState & (1 << pin) != (binaryRep << pin))) {
     analogCurrentState &= ~(1 << pin);
     analogCurrentState |= (binaryRep << pin);
-    String outString = String("AnalogStream;pin=") + i + String(";value=") + readVal + String(";");
+    String outString = String("AnalogStream;pin=") + pin + String(";value=") + readVal + String(";");
     //Serial.println("Sending Out: " + outString);
     client.send(outString);
   }

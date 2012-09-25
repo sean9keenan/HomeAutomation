@@ -1,7 +1,7 @@
-window.DeviceSettingsMain = Backbone.View.extend({
+ window.DeviceSettingsAdvanced = Backbone.View.extend({
 
   initialize:function () {
-    console.log('Initializing Main Settings View');
+    console.log('Initializing Advanced Device Settings View');
     this.render();
   },
 
@@ -9,5 +9,6 @@ window.DeviceSettingsMain = Backbone.View.extend({
     $(this.el).html(this.template());
     return this;
   },
+
 
 });

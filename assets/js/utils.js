@@ -5,16 +5,16 @@ window.templateLoader = {
 
     var deferreds = [];
 
-    //TODO: Want last Index of
-    var indexOfSlash = views.indexOf("//")
-    var dir = "";
-    if (indexOfSlash != -1){
-      //TODO: Um, make this work. Yup.
-      dir = views[0, indexOfSlash + 1];
-      views = views[indexOfSlash];
-    }
-
     $.each(views, function(index, view) {
+
+      var indexOfSlash = view.lastIndexOf("/")
+      var dir = "";
+      if (indexOfSlash != -1){
+        //TODO: Um, make this work. Yup.
+        dir = view.substring(0, indexOfSlash + 1);
+        view = view.substring(indexOfSlash+1);
+      }
+
       if (window[view]) {
         deferreds.push($.get('tpl/' + dir + view + '.html', function(data) {
           window[view].prototype.template = _.template(data);

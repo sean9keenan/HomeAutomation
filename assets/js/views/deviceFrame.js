@@ -84,7 +84,7 @@ window.DeviceSettingsFrameHolder = Backbone.View.extend({
     var self = this;
 
     if (this.targetID == null){
-      this.deviceContent = new window.deviceSettingsMain();
+      this.deviceContent = new window.DeviceSettingsMain();
       $(this.el).hide().html(this.deviceContent.el).fadeIn(200); 
     } else {
       this.devices.each(function (device) {
@@ -127,13 +127,11 @@ window.DeviceSettingsFrame = Backbone.View.extend({
   },
   initialize: function (model) {
     _.bindAll(this, 'setStatus', 'completeDevice', 'deleteDevice', 'setName',
-       'saveChanges', 'deviceDeleted', 'setPinNum', 'setDashboard',
+       'saveChanges', 'deviceDeleted',
        'setHostDeviceFromSave', 'setHostDevice');
     this.model = model;
     this.model.bind('change:completed', this.setStatus);
     this.model.bind('change:name', this.setName);
-    this.model.bind('change:pinNum', this.setPinNum);
-    this.model.bind('change:dashboard', this.setDashboard);
     this.model.bind('change:hostDevice', this.setHostDeviceFromSave);
     this.model.bind('delete', this.deviceDeleted);
     this.render();
@@ -143,8 +141,6 @@ window.DeviceSettingsFrame = Backbone.View.extend({
     $(this.el).html(this.template());
     $(this.el).attr('id', this.model.id);
     this.setName();
-    this.setPinNum();
-    this.setDashboard();
     this.setStatus();
     this.setHostDeviceFromSave();
 
@@ -158,22 +154,12 @@ window.DeviceSettingsFrame = Backbone.View.extend({
   setHostDeviceFromSave: function() {
     var hostDevice = this.model.get('hostDevice');
     //TODO: Set the hostDeviceDropdown here....
-    setHostDevice();
+    this.setHostDevice();
 
   },
   setHostDevice: function() {
-    this.hostDeviceSettings = new Window.DeviceSettingsArduino(this.model);
-    this.$('.selectedDeviceFrame').hide().html(this.hostDeviceSettings.el).fadeIn(200); 
-  },
-  setDashboard: function() {
-    var status = this.model.get('dashboard');
-    if (status) {
-      // this.$('.status').addClass('complete');
-      this.$('#dashboardCheck').attr('checked', true);
-    } else {
-      // this.$('.status').removeClass('complete');
-      this.$('#dashboardCheck').attr('checked', false);
-    }
+    this.hostDeviceSettings = new window.DeviceSettingsArduino(this.model);
+    this.$('#selectedDeviceFrame').hide().html(this.hostDeviceSettings.el).fadeIn(200); 
   },
   setName: function() {
     var name = this.model.get('name');
@@ -184,10 +170,6 @@ window.DeviceSettingsFrame = Backbone.View.extend({
       this.$('#name').val(name);
     }
 
-  },
-  setPinNum: function() {
-    var pinNum = this.model.get('pinNum');
-    this.$('#inputPinNum').val(pinNum);
   },
   setStatus: function () {
     var status = this.model.get('completed');
@@ -227,6 +209,9 @@ window.DeviceSettingsFrame = Backbone.View.extend({
     }
   },
   saveChanges: function () {
+    if (this.hostDeviceSettings != null){
+      this.hostDeviceSettings.saveChanges();
+    }
     this.model.save({
      name: this.$('#name').val(),
      dashboard: this.$('#dashboardCheck').is(':checked'),
@@ -335,8 +320,8 @@ window.DeviceNav = Backbone.View.extend({
 
     //Add the main content in!
     if (device.id == this.targetID){
-      var deviceContent = new window.DeviceSettingsFrame(device);
-      $('#deviceContent').hide().html(deviceContent.el).fadeIn(200);
+      // var deviceContent = new window.DeviceSettingsFrame(device);
+      // $('#deviceContent').hide().html(deviceContent.el).fadeIn(200);
     }
   },
   removeDevice: function (device) {
