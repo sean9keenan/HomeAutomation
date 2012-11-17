@@ -22,24 +22,27 @@ module.exports = function(conf) {
   
   
   exports.DeviceSchema = DeviceSchema = new Schema({
-    name        : String,
-    type        : String,
-    state       : String,
-    id          : String,
-    completed   : Boolean,
-    pinNum      : Number,
-    dashboard   : Boolean,
-    hostDevice  : String,
-    value       : Number,
-    isAnalog    : Boolean,
-    isOutput    : Boolean,
-    defaultType : String,
+    name          : String,
+    type          : String,
+    state         : String,
+    id            : String,
+    completed     : Boolean,
+    pinNum        : Number,
+    dashboard     : Boolean,
+    hostDevice    : String,
+    value         : Number,
+    isAnalog      : Boolean,
+    isOutput      : Boolean,
+    defaultType   : String,
+    forceInit     : Boolean,
+    outputs       : [String], 
+    pendingActions: [{target: String, action: String}],
 
-    dateCreated : String, // var x = newDate(); x.toUTCString();
-    dateModified: String, // ^
-    map         : { src: String, link: String },
-    _owners     : objectRef('User'),
-    _comments   : [objectRef('Comment')],
+    dateCreated  : String, // var x = newDate(); x.toUTCString();
+    dateModified : String, // ^
+    map          : { src: String, link: String },
+    _owners      : objectRef('User'),
+    _comments    : [objectRef('Comment')],
   });
 
   exports.UserSchema = UserSchema = new Schema({

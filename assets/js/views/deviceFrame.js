@@ -40,7 +40,8 @@ window.DeviceFrameView = Backbone.View.extend({
       hostDevice: null,
       isAnalog: false,
       isOutput: true,
-      defaultType: "light"
+      defaultType: "light",
+      outputs: null
     };
     
     var _device = new Device(attrs);
@@ -209,14 +210,16 @@ window.DeviceSettingsFrame = Backbone.View.extend({
     }
   },
   saveChanges: function () {
+    outModel = {
+       name: this.$('#name').val(),
+       dashboard: this.$('#dashboardCheck').is(':checked'),
+       pinNum: this.$('#inputPinNum').val() 
+     };
     if (this.hostDeviceSettings != null){
-      this.hostDeviceSettings.saveChanges();
+      this.hostDeviceSettings.saveChanges(outModel);
+    } else {
+      this.model.save(outModel);
     }
-    this.model.save({
-     name: this.$('#name').val(),
-     dashboard: this.$('#dashboardCheck').is(':checked'),
-     pinNum: this.$('#inputPinNum').val() 
-   });
   }
 
 });
@@ -318,11 +321,11 @@ window.DeviceNav = Backbone.View.extend({
     var tdv = new window.DeviceNavItem(device);
     $(tdv.el).hide().appendTo(this.el).fadeIn(200);
 
-    //Add the main content in!
-    if (device.id == this.targetID){
-      // var deviceContent = new window.DeviceSettingsFrame(device);
-      // $('#deviceContent').hide().html(deviceContent.el).fadeIn(200);
-    }
+    // //Add the main content in!
+    // if (device.id == this.targetID){
+    //   // var deviceContent = new window.DeviceSettingsFrame(device);
+    //   // $('#deviceContent').hide().html(deviceContent.el).fadeIn(200);
+    // }
   },
   removeDevice: function (device) {
     var self = this

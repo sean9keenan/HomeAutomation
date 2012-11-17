@@ -298,7 +298,9 @@ window.DashboardItem = Backbone.View.extend({
     // set status (update UI) as we are waiting for
     // the server to instruct us to do so.
     var status = this.model.get('completed');
-    this.model.save({ completed: !!!status });
+    this.model.save({ completed: !status,
+                      pendingEvents: [{target: this.targetID, action: "dashboard" + !status }]
+                    });
   },
   deleteDevice: function () {
     // Silent is true so that we react to the server

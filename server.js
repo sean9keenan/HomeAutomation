@@ -29,6 +29,20 @@ var db = util.db(conf);
 
 io.sockets.on('connection', function (socket) {
 
+
+  socket.on('event', function (data, callback) {
+    console.log('customEvent Recieved' + data.outType + "msg stuff!" + data.msg);
+    try {
+      if (data.outType != null && data.msg != null){
+        console.log('handlingOut');
+        handleOutType(data.outType, data.msg)
+      }
+    } catch (err) {
+
+    }
+
+  });
+
   /**
    * device:create
    *
@@ -54,7 +68,8 @@ io.sockets.on('connection', function (socket) {
 
     var json = s;
 
-    sendToArduino(s, true);
+   // checkState(s, null);
+    //sendToArduino(s, true);
 
     socket.emit('devices:create', json);
     socket.broadcast.emit('devices:create', json);
@@ -98,15 +113,14 @@ io.sockets.on('connection', function (socket) {
   socket.on('devices:update', function (data, callback) {
     
     Device.findById(data.id, function (err, device) {
-      //device.completed = data.completed;
+      checkState(data, device);
       jQuery.each(data, function(i, val) {
         device[i] = val;
       });
-      device.update(data);
+      //device.update(data);
       device.save();
       socket.emit('devices/' + data.id + ':update', device);
       socket.broadcast.emit('devices/' + data.id + ':update', device);
-      sendToArduino(device, data.pinNum != device.pinNum);
       callback(null, device);
     });
 
@@ -160,30 +174,133 @@ server.addListener("connection", function(connection){
 
 server.listen(80);
 
-
-
 function sendToArduino(device, needPinInit){
+  var action = "dashboardOff"
+
   var pin = device.pinNum;
   if (needPinInit && arduinoCallback != null){
     arduinoCallback("cmd:initPin;pin:" + pin + ";type:output");
   }
-  var value = "off";
   if (device.completed) {
-    value = "on"
+    action = "dashboardOn"
   }
-  if (arduinoCallback != null){
-    arduinoCallback("cmd:setPin;pin:" + pin + ";type:" + value);
+  if (arduinoCallback != null && device.outputs != null && device.outputs.length != null){
+    var allOutputs = device.outputs;
+    for (var i = 0; i < allOutputs.length; i++){
+      if (allOutputs[i].action === action && typeof allOutputs[i].msg == "string"){
+        arduinoCallback(allOutputs[i].msg);
+      }
+    }
+  }
+}
+
+function handleOutType (outType, msg){
+  if (outType == "arduino" && arduinoCallback != null){
+    arduinoCallback(msg);
+  } else if (outType == "global") {
+    handleGlobal(msg);
+  } else if (outType == "init") {
+    arduinoUpdateAllDevices();
+  }
+}
+
+function checkState(device, oldDevice){
+  console.log("Check State is called...")
+  if (device.outputs != null){
+    console.log("state was found :/" + device.outputs.length)
+    for (var i = 0; i < device.outputs.length; i++){
+
+      try{
+      console.log("actionTrig:" + device.outputs[i]);
+      var deviceJSON = JSON.parse(device.outputs[i]);
+      if (deviceJSON.actionTrig == "state"){
+        console.log("Some sort of state was found :)")
+        var action = JSON.parse(deviceJSON.action);
+        var count = 0;
+        jQuery.each(device, function(j, jVal) {
+          jQuery.each(action, function(k, kVal) {
+            if (k == j){
+        console.log("k j match :))" + jVal +"," + kVal)
+              var isMatch = (jVal.toString() == kVal.toString());
+              console.log('isMatch, prior' + isMatch);
+              if (kVal.toString().substring(0, 2) == "!="){
+                isMatch = (jVal != (kVal.substring(2)));
+              }
+              console.log('isMatch, apres' + isMatch)
+              if (isMatch){
+              console.log("Some sort of match was found!!")
+                if (oldDevice == null || oldDevice[j] != jVal){
+                  handleOutType(deviceJSON.outType,
+                    deviceJSON.msg);
+                }
+              }
+            }
+          });
+        });
+      }
+      } catch (err) {
+      
+      }
+    }
+  }
+}
+
+function checkInit(device){
+    console.log("Check State is called...")
+  if (device.outputs != null){
+    console.log("state was found :/" + device.outputs.length)
+    for (var i = 0; i < device.outputs.length; i++){
+
+      try{
+        console.log("actionTrig:" + device.outputs[i]);
+        var deviceJSON = JSON.parse(device.outputs[i]);
+        if (deviceJSON.actionTrig == "init"){
+          handleOutType(deviceJSON.outType, deviceJSON.msg);
+        }
+      } catch (err) {
+      
+      }
+    }
   }
 }
 
 function arduinoUpdateAllDevices() {
   Device.find(function (err, devices) {
     for (var i = 0; i < devices.length; i++) {
-      sendToArduino(devices[i], true);
+      checkInit(devices[i]);
+      checkState(devices[i], null);
     }
     
   });
 }
+
+function handleGlobal(msg){
+  try{
+    var data = JSON.parse(msg);
+    if (data.id != null){
+      Device.findById(data.id, function (err, device) {
+        if (data.outType == 'global'){
+          if (device.outputs != null){
+            console.log("state was found :/" + device.outputs.length)
+            for (var i = 0; i < device.outputs.length; i++){
+              console.log("actionTrig:" + device.outputs[i]);
+              var deviceJSON = JSON.parse(device.outputs[i]);
+              if (deviceJSON.global == data.global){
+                handleOutType(deviceJSON.outType, deviceJSON.msg);
+              }
+            }
+          }
+        }
+      });
+    } else {
+      //TODO: implement true global (without object ID) in command here
+    }
+
+  } catch (err){
+
+  }
+}
+
 
 
 // io.sockets.on('connection', function(socket) {
