@@ -1,4 +1,6 @@
-window.socket = io.connect('http://xp.skeenan.com:8080');
+window.socket = io.connect('http://xp.skeenan.com:8080', {
+  // 'connect timeout': 1
+});
 
 
 window.socket.on('connect', function() {
@@ -6,10 +8,15 @@ window.socket.on('connect', function() {
   $('#messages').fadeOut(function() {
     $('#messages').html('');
   });
+  console.log('connect');
+});
+window.socket.on('connecting', function(){
+  console.log('connecting');
 });
 
 window.socket.on('disconnect', function() {
   onSocketError();
+  console.log('disconnect');
 });
 
 window.socket.on('error', function(){
@@ -19,17 +26,36 @@ window.socket.on('error', function(){
 window.socket.on('connect_failed', function(){
   console.log('socketConnect_Failed');
 });
+
 window.socket.on('reconnect_failed', function(){
   console.log('socketReconnect_failed');
 });
+window.socket.on('reconnect', function(){
+  if (app.dashboardView){
+    app.dashboardView.render()
+  }
+  if (app.deviceFrameView){
+    app.deviceFrameView.render()
+  }
+  console.log('reconnect');
+});
+window.socket.on('reconnecting', function(){
+  console.log('reconnecting');
+});
 
 function onSocketError() {
-  $('#messages').load('tpl/MessageAlert.html', function() {
+  $('#messages').html('  <div class="alert">\
+    <a class="close" data-dismiss="alert" href="#"> × </a>\
+    <strong> </strong> <div class="alertMessage"> </div>\
+  </div>');
+
+  // $('#messages').load=('tpl/MessageAlert.html', function() {
     $('#messages .alert').attr('class', 'alert alert-error');
     $('#messages strong').html('ERROR');
     $('#messages .alertMessage').html('We lost the connection to the server!');
 
-  });
+  // });
+  $('#messages').fadeIn()
 }
 
 window.Router = Backbone.Router.extend({
@@ -90,7 +116,7 @@ window.Router = Backbone.Router.extend({
     this.dashboardView.list.delegateToItems();
   },
 
-  devices: function (id) {
+  devices: function (id) {                  
     if (!this.deviceFrameView){
         this.deviceFrameView = new DeviceFrameView();
         this.deviceFrameView.render();
