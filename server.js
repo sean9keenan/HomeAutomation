@@ -220,7 +220,7 @@ function checkState(device, oldDevice){
         jQuery.each(device, function(j, jVal) {
           jQuery.each(action, function(k, kVal) {
             if (k == j){
-        console.log("k j match :))" + jVal +"," + kVal)
+              console.log("k j match :))" + jVal +"," + kVal)
               var isMatch = (jVal.toString() == kVal.toString());
               console.log('isMatch, prior' + isMatch);
               if (kVal.toString().substring(0, 2) == "!="){
