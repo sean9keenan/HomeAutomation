@@ -66,6 +66,9 @@ window.Router = Backbone.Router.extend({
     this.deviceFrameView.delegateEvents();
     if (this.deviceFrameView.settingsFrameHolder.deviceContent != null){
       this.deviceFrameView.settingsFrameHolder.deviceContent.delegateEvents();
+      if (this.deviceFrameView.settingsFrameHolder.deviceContent.hostDeviceSettings != null){
+        this.deviceFrameView.settingsFrameHolder.deviceContent.hostDeviceSettings.delegateEvents();
+      }
     }
     this.headerView.select('device-menu');
 
@@ -94,8 +97,6 @@ window.Router = Backbone.Router.extend({
 });
 
 
-
-
 templateLoader.load(["ContactView", "HomeView", "HeaderView", "DashboardView", 
     "LoggedInDropdownView", "LoginDropdownView", "DeviceFrameView", "DashboardItem",
     "DeviceNavItem", "NotFoundView", "DeviceSettingsFrame",
@@ -105,3 +106,4 @@ templateLoader.load(["ContactView", "HomeView", "HeaderView", "DashboardView",
         app = new Router();
         Backbone.history.start();
     });
+

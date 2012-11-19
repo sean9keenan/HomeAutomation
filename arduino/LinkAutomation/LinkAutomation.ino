@@ -177,7 +177,7 @@ String extractParameter(String input, String key) {
 }
 
 void openConnection() {
-   if (onMacbook) {
+  if (onMacbook) {
     Ethernet.begin(mac, macIp, googDns);
   } else {
     Ethernet.begin(mac);

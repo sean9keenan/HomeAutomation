@@ -62,7 +62,7 @@ window.DeviceList = Backbone.View.extend({
   },
   addDevice: function (device) {
 
-    var tdv = new window.DashboardItem(device);
+    var tdv = new window.DimmableDashboard(device);
     this.dashboardArray.push(tdv);
     $(tdv.el).hide().appendTo(this.el).fadeIn(200);
     //$(this.el).append(tdv.el).hide().fadeIn(2000);

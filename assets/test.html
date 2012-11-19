@@ -1,6 +1,5 @@
 <!DOCTYPE HTML>
 <html>
-<script src="http://yui.yahooapis.com/3.7.3/build/yui/yui-min.js"></script>
 
 <style>
 .yui3-dial-label{
@@ -10,10 +9,28 @@
 </style>
 
 <body > <!-- You need this skin class -->
-<div class="yui3-skin-sam" id="demo">
+<div class="square" draggable="true">
+  <header class="title"> New Test! </header>
+  <div class="deleteInDash">
+    Click for delete
+  </div>
+  <div class="status" style="display: none">
+    Status stuff!
+  </div>
+  <div class="completeBtn yui3-skin-sam" id="demo" style="height:100%">
+  </div>
+
 </div>
+
+<style>
+.yui3-dial-label{
+    display:none;
+}
+
+</style>
 </body>
 
+<script src="http://yui.yahooapis.com/3.7.3/build/yui/yui-min.js"></script>
 <script>
 YUI().use('dial', function(Y) {
 
