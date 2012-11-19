@@ -6,7 +6,6 @@ window.Router = Backbone.Router.extend({
     "devices/:id": "devices",
     "devices": "devices",
     "dashboard": "dashboard",
-    "employees/:id": "employeeDetails",
     '*path':  'notFound'
   },
 
@@ -101,7 +100,7 @@ templateLoader.load(["ContactView", "HomeView", "HeaderView", "DashboardView",
     "LoggedInDropdownView", "LoginDropdownView", "DeviceFrameView", "DashboardItem",
     "DeviceNavItem", "NotFoundView", "DeviceSettingsFrame",
     "DeviceSettings/DeviceSettingsArduino", "DeviceSettings/DeviceSettingsAdvanced",
-    "DeviceSettings/DeviceSettingsMain"],
+    "DeviceSettings/DeviceSettingsMain", "DashboardItems/DimmableDashboard"],
     function () {
         app = new Router();
         Backbone.history.start();

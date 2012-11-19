@@ -7,10 +7,10 @@ window.DeviceSettingsArduino = Backbone.View.extend({
     _.bindAll(this, 'setDefaultTypeFromSave', 'setDefaultType', 
       'setPinNum', 'setDashboard', 'saveChanges')
     this.model = model;
+    this.render();
     this.model.bind('change:defaultType', this.setDefaultTypeFromSave);
     this.model.bind('change:pinNum', this.setPinNum);
     this.model.bind('change:dashboard', this.setDashboard);
-    this.render();
     this.targetID = this.model.id;
   },
 
@@ -24,12 +24,27 @@ window.DeviceSettingsArduino = Backbone.View.extend({
   setDefaultTypeFromSave: function() {
     var defaultType = this.model.get('defaultType');
     //TODO: Set the dropdown for the default type here
+    var dropdown = this.$('.selectDeviceType')[0];
+    for (var i = dropdown.length - 1; i >= 0; i--) {
+      if (dropdown.options[i].text == defaultType) {
+        dropdown.selectedIndex = i;
+      }
+    };
     this.setDefaultType();
   },
   setDefaultType: function() {
     //TODO: Select which you want to inflate
-    this.defaultTypeView = new window.DeviceSettingsLights(this.model);
-    this.$('.defaultTypeViewContainer').hide().html(this.defaultTypeView.el).fadeIn(200);
+    var dropdown = this.$('.selectDeviceType')[0];
+    var selected = dropdown.options[dropdown.selectedIndex]
+    if (selected.id == 'analog'){
+      this.defaultTypeView = new window.DeviceSettingsAnalog(this.model);
+    } else if (selected.id == 'advanced') {
+      this.defaultTypeView = new window.DeviceSettingsAdvanced(this.model);
+    } else {
+      this.defaultTypeView = new window.DeviceSettingsLights(this.model);
+    }
+      this.defaultTypeView.render();
+      this.$('.defaultTypeViewContainer').hide().html(this.defaultTypeView.el).fadeIn(200);
   },
 
   setPinNum: function() {
@@ -62,10 +77,12 @@ window.DeviceSettingsArduino = Backbone.View.extend({
       
     }
     console.log(outModel);
+    var dropdown = this.$('.selectDeviceType')[0];
     jQuery.extend(outModel, {
      dashboard: this.$('#dashboardCheck').is(':checked'),
      pinNum: this.$('#inputPinNum').val(),
-     pendingActions: [{target: this.targetID, action: "init"}]
+     pendingActions: [{target: this.targetID, action: "init"}],
+     defaultType: dropdown.options[dropdown.selectedIndex].text
     });
 
     if (this.defaultTypeView != null){
@@ -84,6 +101,28 @@ window.DeviceSettingsLights = Backbone.View.extend({
   },
   render: function() {
     return '';
+  },
+  saveChanges: function(pinNum) {
+    //pinNum = this.model.get('pinNum');
+    return ({
+     outputs: [JSON.stringify({actionTrig: "state", global: 'on', action: '{"completed": "true"}',
+                  outType: "arduino", msg: "cmd:setPin;pin:" + pinNum + ";type:" + "on"}),
+               JSON.stringify({actionTrig: "state", global: 'off', action: '{"completed": "false"}', 
+                  outType: "arduino", msg: "cmd:setPin;pin:" + pinNum + ";type:" + "off"}),
+               JSON.stringify({actionTrig: "init", global: 'init', action: 'init', 
+                  outType: "arduino", msg: "cmd:initPin;pin:" + pinNum + ";type:" + "output"})]
+    });
+  }
+});
+
+window.DeviceSettingsAnalog = Backbone.View.extend({
+  initialize:function(model){
+    _.bindAll(this, 'saveChanges');
+    this.model = model;
+  },
+  render: function() {
+    $(this.el).html('<p> Something!!! </p>');
+    return this;
   },
   saveChanges: function(pinNum) {
     //pinNum = this.model.get('pinNum');
