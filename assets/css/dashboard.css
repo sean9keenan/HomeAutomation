@@ -50,3 +50,10 @@
 .complete {
   background: #FFF0A0;
 }
+
+.completeBtn{
+  margin-top: 6px;
+}
+.yui3-dial-label{
+  display:none;
+}

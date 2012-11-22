@@ -66,8 +66,9 @@ void dataArrived(WebSocketClient client, String data) {
                       //Instead use analogStr.equals(nullString)
     if (!analogStr.equals(nullString)){
       char analogChar[analogStr.length() + 1];
-      analogStr.toCharArray(analogChar, pin.length()+1);
+      analogStr.toCharArray(analogChar, analogStr.length()+1);
       analog = atoi(analogChar);
+      Serial.println(analogStr + "::" + analog);
     }
     
     String cmd = extractParameter(data, "cmd");

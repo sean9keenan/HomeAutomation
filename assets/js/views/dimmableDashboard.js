@@ -12,7 +12,6 @@
 window.DimmableDashboard = Backbone.View.extend({
   className: 'device',
   events: {
-    'click .completeBtn': 'completeDevice',
     'click .delete': 'deleteDevice'
   },
   initialize: function (model) {
@@ -29,11 +28,17 @@ window.DimmableDashboard = Backbone.View.extend({
     $(this.el).html(this.template());
     $(this.el).attr('id', this.model.id);
     this.$('#dim').attr('id', 'dim' + this.model.id);
-    this.setStatus();
     this.setName();
     this.setDisplay();
     this.initDial(this);
+    this.setValue();
     return this;
+  },
+  remove: function () {
+    if (this.removeDial != null){
+      this.removeDial();
+    }
+    $(this.el).remove();
   },
   setDisplay: function () {
     if (this.model.get('dashboard')) {
@@ -57,8 +62,19 @@ window.DimmableDashboard = Backbone.View.extend({
   },
   setValue: function() {
     if (this.setValueFunc){
-      this.setValueFunc(this.model.get('value'))
+      this.setValueFunc(this.model.get('value'));
     }
+    weight = 1 - (this.model.get('value') / 255)
+    var weightColors = function(color1, color2, weight){
+      out = ((color1 - color2) * weight + color2).toString(16)
+      if (out.indexOf(".") == 1 || out.length <= 1){
+        return "0" + out[0]
+      } else {
+        return out[0] + out[1]
+      }
+    }
+    colorOut = '#' + weightColors(0xEE,0xFF,weight) + weightColors(0xEE,0xF0,weight) + weightColors(0xEE,0xA0,weight)
+    this.$('.square').css('background-color', colorOut);
   },
   completeDevice: function () {
     // here we toggle the completed flag. we do NOT
@@ -96,7 +112,20 @@ window.DimmableDashboard = Backbone.View.extend({
         setSceneY = function(e) {
             // Y.one('#scene').setStyle('top', (originY + (e.newVal * 10)) + 'px');
             if (dimmableThis.ignoreNextValue == false){
-              dimmableThis.model.save({ value: e.newVal });
+              if (canCall) {
+                dimmableThis.model.save({ value: e.newVal });
+                canCall = false
+                beenUpdated = true
+                setTimeout(function(){
+                  canCall = true;
+                  if (!beenUpdated) {
+                    dimmableThis.model.save({ value: dial.get('value') });
+                    beenUpdated = true
+                  }
+                }, 100);
+              } else {
+                beenUpdated = false;
+              }
             } else {
               dimmableThis.ignoreNextValue = false;
             }
@@ -110,7 +139,7 @@ window.DimmableDashboard = Backbone.View.extend({
             diameter: 100,
             minorStep: 1,
             majorStep: 10,
-            decimalPlaces: 2, 
+            decimalPlaces: 0, 
             strings:{label:'Power:', resetStr: 'On/Off', tooltipHandle: 'Drag to set'},
             // construction-time event subscription
             after : {
@@ -123,6 +152,10 @@ window.DimmableDashboard = Backbone.View.extend({
             dimmableThis.ignoreNextValue = true;
             dial.set('value',val);
           }
+        }
+
+        dimmableThis.removeDial = function(){
+          dial.destroy();
         }
 
         dial._resetDial = function(e){
@@ -144,7 +177,9 @@ window.DimmableDashboard = Backbone.View.extend({
             this._handleNode.focus();
 
         }
-        dial.render('#dim' + dimmableThis.model.id);
+        $('#dim' + dimmableThis.model.id).livequery(function(){
+          dial.render('#dim' + dimmableThis.model.id);
+        })
 
         // Function that calls a method in Dial that sets its value to the value of the max config attribute 
         // Other methods available include,
@@ -161,4 +196,7 @@ window.DimmableDashboard = Backbone.View.extend({
     });
   }
 });
+
+canCall = true
+beenUpdated = true
 

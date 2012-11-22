@@ -19,6 +19,8 @@ window.DashboardView = Backbone.View.extend({
   },
 
   remove: function () {
+    this.list.remove()
+    $(this.el).remove();
   }
 
 });
@@ -84,6 +86,11 @@ window.DeviceList = Backbone.View.extend({
     // this.dashboardArray.each(function (tdv) {
     //   tdv.delegateEvents();
     // });
+  },
+  remove: function(){
+    for (var i = this.dashboardArray.length - 1; i >= 0; i--) {
+      this.dashboardArray[i].remove();
+    };
   }
 });
 

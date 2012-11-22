@@ -113,12 +113,16 @@ io.sockets.on('connection', function (socket) {
   socket.on('devices:update', function (data, callback) {
     
     Device.findById(data.id, function (err, device) {
-      checkState(data, device);
+      oldDevice = JSON.parse(JSON.stringify(device));
       jQuery.each(data, function(i, val) {
         device[i] = val;
       });
       //device.update(data);
-      device.save();
+      device.save(function (err){
+        //This needs to be done because some msgs do db queries
+        checkState(device, oldDevice);
+
+      });
       socket.emit('devices/' + data.id + ':update', device);
       socket.broadcast.emit('devices/' + data.id + ':update', device);
       callback(null, device);
@@ -176,39 +180,56 @@ server.addListener("connection", function(connection){
 server.listen(80);
 
 
-function handleOutType (outType, msg){
-  msg = processMsg(msg);
-  if (outType == "arduino" && arduinoCallback != null){
-    arduinoCallback(msg);
-  } else if (outType == "global") {
-    handleGlobal(msg);
-  } else if (outType == "init") {
-    arduinoUpdateAllDevices();
+function handleOutType(outType, msg){
+  if (processMsg(outType, msg)){
+    console.log("msg!" + msg)
+    if (outType == "arduino" && arduinoCallback != null){
+      arduinoCallback(msg);
+    } else if (outType == "global") {
+      handleGlobal(msg);
+    } else if (outType == "init") {
+      arduinoUpdateAllDevices();
+    }
   }
 }
 
-function processMsg(msg){
+function processMsg(outType, msg){
+  console.log("processings somthing1")
   var patt = /{.*}/
+  console.log("processings somthing2")
   var toReplace = patt.exec(msg)
-  for (var i = toReplace.length - 1; i >= 0; i--) {
-    var out = handleReplace(toReplace[i])
-    msg.replace(toReplace[i], out)
-  };
+  if (toReplace != null){
+    for (var i = toReplace.length - 1; i >= 0; i--) {
+      if (!handleReplace(outType, msg, toReplace[i]))
+        return false
+    };
+  }
+  console.log("processings somthing3")
+  return true
 }
 
-function handleReplace(toReplace){
+function handleReplace(outType, msg, toReplace){
   if (toReplace[1].toString() == "#"){
     endOfIndex = toReplace.indexOf(".")
     id = toReplace.substring(2, endOfIndex);
 
-    property = toReplace.substring(endOfIndex, toReplace.length - 1)
+    property = toReplace.substring(endOfIndex + 1, toReplace.length - 1)
 
-    evice.findById(id, function (err, device) {
-      return device[property].toString()
+    console.log("processings somthing2.5")
+    Device.findById(id, function (err, device) {
+      console.log("processings somthing2.8: " + property)
+      if (device[property] != null){
+        msg = msg.replace(toReplace, device[property])
+      } else {
+        msg = msg.replace(toReplace, "")
+      }
+      handleOutType(outType, msg)
     });
+    return false;
 
+  } else {
+    return true;
   }
-  return toReplace;
 }
 
 function handleArduinoCmd(msg){
@@ -232,12 +253,12 @@ function checkState(device, oldDevice){
           jQuery.each(action, function(k, kVal) {
             if (k == j){
               console.log("k j match :))" + jVal +"," + kVal)
-              var isMatch = (jVal.toString() == kVal.toString());
+              var isMatch = (jVal.toString() == kVal.toString() &&  oldDevice[j].toString() != jVal);
               console.log('isMatch, prior' + isMatch);
 
               // Allow the {changed} operator to detect changes
               if (kVal.toString() == "{changed}"){
-                isMatch = (jVal).toString() != oldDevice[k].toString()
+                isMatch = (oldDevice == null) || (jVal).toString() != oldDevice[k].toString()
               }
 
               // Allow the != comparitor in comparing states
@@ -247,10 +268,7 @@ function checkState(device, oldDevice){
               console.log('isMatch, apres' + isMatch)
               if (isMatch){
               console.log("Some sort of match was found!!")
-                if (oldDevice == null || oldDevice[j] != jVal){
-                  handleOutType(deviceJSON.outType,
-                    deviceJSON.msg);
-                }
+              handleOutType(deviceJSON.outType, deviceJSON.msg);
               }
             }
           });

@@ -32,7 +32,9 @@ window.socket.on('reconnect_failed', function(){
 });
 window.socket.on('reconnect', function(){
   if (app.dashboardView){
+    app.dashboardView.remove()
     app.dashboardView.render()
+    app.dashboard()
   }
   if (app.deviceFrameView){
     app.deviceFrameView.render()
