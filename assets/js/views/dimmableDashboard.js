@@ -17,20 +17,22 @@ window.DimmableDashboard = Backbone.View.extend({
   },
   initialize: function (model) {
     _.bindAll(this, 'setStatus', 'completeDevice', 'deleteDevice', 
-      'setDisplay', 'setName', 'initDial');
+      'setDisplay', 'setName', 'initDial', 'setValue');
     this.model = model;
     this.model.bind('change:completed', this.setStatus);
     this.model.bind('change:name', this.setName);
     this.model.bind('change:dashboard', this.setDisplay);
-    this.initDial()
+    this.model.bind('change:value', this.setValue);
     this.render();
   },
   render: function () {
     $(this.el).html(this.template());
     $(this.el).attr('id', this.model.id);
+    this.$('#dim').attr('id', 'dim' + this.model.id);
     this.setStatus();
     this.setName();
     this.setDisplay();
+    this.initDial(this);
     return this;
   },
   setDisplay: function () {
@@ -53,6 +55,11 @@ window.DimmableDashboard = Backbone.View.extend({
       this.$('.square').removeClass('complete');
     }
   },
+  setValue: function() {
+    if (this.setValueFunc){
+      this.setValueFunc(this.model.get('value'))
+    }
+  },
   completeDevice: function () {
     // here we toggle the completed flag. we do NOT
     // set status (update UI) as we are waiting for
@@ -66,7 +73,7 @@ window.DimmableDashboard = Backbone.View.extend({
     // broadcasting the remove event.
     this.model.destroy({ silent: true });
   },
-  initDial: function() {
+  initDial: function( dimmableThis ) {
 
     YUI().use('dial', function(Y) {
 
@@ -78,6 +85,8 @@ window.DimmableDashboard = Backbone.View.extend({
 
         // Y.one('#scene').setStyle('top', originY + 'px');
 
+
+        dimmableThis.ignoreNextValue = false;
         /**
         * The Dial's valueChange event is passed to this.
         * sets the CSS top value of the pictoral scene of the earth to the hubble.
@@ -86,13 +95,18 @@ window.DimmableDashboard = Backbone.View.extend({
         */
         setSceneY = function(e) {
             // Y.one('#scene').setStyle('top', (originY + (e.newVal * 10)) + 'px');
+            if (dimmableThis.ignoreNextValue == false){
+              dimmableThis.model.save({ value: e.newVal });
+            } else {
+              dimmableThis.ignoreNextValue = false;
+            }
         }
 
         var dial = new Y.Dial({
-            min:-100,
-            max:0,
-            stepsPerRevolution:110,
-            value: 0,
+            min:0,
+            max:255,
+            stepsPerRevolution:275,
+            value: dimmableThis.model.get('value'),
             diameter: 100,
             minorStep: 1,
             majorStep: 10,
@@ -103,6 +117,14 @@ window.DimmableDashboard = Backbone.View.extend({
                 valueChange: Y.bind( setSceneY, dial )
             }
         });
+
+        dimmableThis.setValueFunc = function(val){
+          if (dial.get('value') != val){
+            dimmableThis.ignoreNextValue = true;
+            dial.set('value',val);
+          }
+        }
+
         dial._resetDial = function(e){
             if(e){
                 e.stopPropagation(); //[#2530206] need to add so mousedown doesn't propagate to ring and move the handle
@@ -122,7 +144,7 @@ window.DimmableDashboard = Backbone.View.extend({
             this._handleNode.focus();
 
         }
-        dial.render('#demo');
+        dial.render('#dim' + dimmableThis.model.id);
 
         // Function that calls a method in Dial that sets its value to the value of the max config attribute 
         // Other methods available include,

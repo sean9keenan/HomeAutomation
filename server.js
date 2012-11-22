@@ -164,6 +164,7 @@ server.addListener("connection", function(connection){
   
   arduinoCallback = function(msg) {
     server.send(connection.id, msg);
+    console.log("\n\nSending to Arduino:\n" + msg)
   };
   connection.addListener("message", function(msg){
     console.log("msg!" + msg)
@@ -174,27 +175,9 @@ server.addListener("connection", function(connection){
 
 server.listen(80);
 
-function sendToArduino(device, needPinInit){
-  var action = "dashboardOff"
-
-  var pin = device.pinNum;
-  if (needPinInit && arduinoCallback != null){
-    arduinoCallback("cmd:initPin;pin:" + pin + ";type:output");
-  }
-  if (device.completed) {
-    action = "dashboardOn"
-  }
-  if (arduinoCallback != null && device.outputs != null && device.outputs.length != null){
-    var allOutputs = device.outputs;
-    for (var i = 0; i < allOutputs.length; i++){
-      if (allOutputs[i].action === action && typeof allOutputs[i].msg == "string"){
-        arduinoCallback(allOutputs[i].msg);
-      }
-    }
-  }
-}
 
 function handleOutType (outType, msg){
+  msg = processMsg(msg);
   if (outType == "arduino" && arduinoCallback != null){
     arduinoCallback(msg);
   } else if (outType == "global") {
@@ -202,6 +185,34 @@ function handleOutType (outType, msg){
   } else if (outType == "init") {
     arduinoUpdateAllDevices();
   }
+}
+
+function processMsg(msg){
+  var patt = /{.*}/
+  var toReplace = patt.exec(msg)
+  for (var i = toReplace.length - 1; i >= 0; i--) {
+    var out = handleReplace(toReplace[i])
+    msg.replace(toReplace[i], out)
+  };
+}
+
+function handleReplace(toReplace){
+  if (toReplace[1].toString() == "#"){
+    endOfIndex = toReplace.indexOf(".")
+    id = toReplace.substring(2, endOfIndex);
+
+    property = toReplace.substring(endOfIndex, toReplace.length - 1)
+
+    evice.findById(id, function (err, device) {
+      return device[property].toString()
+    });
+
+  }
+  return toReplace;
+}
+
+function handleArduinoCmd(msg){
+
 }
 
 function checkState(device, oldDevice){
@@ -223,6 +234,13 @@ function checkState(device, oldDevice){
               console.log("k j match :))" + jVal +"," + kVal)
               var isMatch = (jVal.toString() == kVal.toString());
               console.log('isMatch, prior' + isMatch);
+
+              // Allow the {changed} operator to detect changes
+              if (kVal.toString() == "{changed}"){
+                isMatch = (jVal).toString() != oldDevice[k].toString()
+              }
+
+              // Allow the != comparitor in comparing states
               if (kVal.toString().substring(0, 2) == "!="){
                 isMatch = (jVal != (kVal.substring(2)));
               }
@@ -301,6 +319,28 @@ function handleGlobal(msg){
   }
 }
 
+
+
+// Depcrecated!!
+function sendToArduino(device, needPinInit){
+  var action = "dashboardOff"
+
+  var pin = device.pinNum;
+  if (needPinInit && arduinoCallback != null){
+    arduinoCallback("cmd:initPin;pin:" + pin + ";type:output");
+  }
+  if (device.completed) {
+    action = "dashboardOn"
+  }
+  if (arduinoCallback != null && device.outputs != null && device.outputs.length != null){
+    var allOutputs = device.outputs;
+    for (var i = 0; i < allOutputs.length; i++){
+      if (allOutputs[i].action === action && typeof allOutputs[i].msg == "string"){
+        arduinoCallback(allOutputs[i].msg);
+      }
+    }
+  }
+}
 
 
 // io.sockets.on('connection', function(socket) {

@@ -31,6 +31,7 @@ module.exports = function(conf) {
     dashboard     : Boolean,
     hostDevice    : String,
     value         : Number,
+    oldValue      : Number,
     isAnalog      : Boolean,
     isOutput      : Boolean,
     defaultType   : String,

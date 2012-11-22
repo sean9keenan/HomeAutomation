@@ -127,10 +127,8 @@ window.DeviceSettingsAnalog = Backbone.View.extend({
   saveChanges: function(pinNum) {
     //pinNum = this.model.get('pinNum');
     return ({
-     outputs: [JSON.stringify({actionTrig: "state", global: 'on', action: '{"completed": "true"}',
-                  outType: "arduino", msg: "cmd:setPin;pin:" + pinNum + ";type:" + "on"}),
-               JSON.stringify({actionTrig: "state", global: 'off', action: '{"completed": "false"}', 
-                  outType: "arduino", msg: "cmd:setPin;pin:" + pinNum + ";type:" + "off"}),
+     outputs: [JSON.stringify({actionTrig: "state", global: 'analog', action: '{"value": "{changed}"}',
+                  outType: "arduino", msg: "cmd:setPin;pin:" + pinNum + ";type:" + "{#" + this.model.id + ".value}"}),
                JSON.stringify({actionTrig: "init", global: 'init', action: 'init', 
                   outType: "arduino", msg: "cmd:initPin;pin:" + pinNum + ";type:" + "output"})]
     });
