@@ -38,7 +38,8 @@ window.DeviceList = Backbone.View.extend({
   id: 'DeviceList',
   dashboardArray: [],
   initialize: function(devices) {
-    _.bindAll(this, 'render', 'addDevice', 'removeDevice', 'delegateToItems');
+    _.bindAll(this, 'render', 'addDevice', 'removeDevice', 'delegateToItems',
+      'inflateDevice');
     
     this.devices = devices;
     
@@ -63,8 +64,20 @@ window.DeviceList = Backbone.View.extend({
     return this;
   },
   addDevice: function (device) {
-
-    var tdv = new window.DimmableDashboard(device);
+    thisWindow = this;  //abusing scope :/
+    device.bind('change:defaultType', function(){
+      thisWindow.removeDevice(device);
+      thisWindow.inflateDevice(device);
+    })
+    this.inflateDevice(device)
+  },
+  inflateDevice: function(device){
+    var tdv = null
+    if (device.get('defaultType') == "Dimmable Lights"){
+      tdv = new window.DimmableDashboard(device);
+    } else {
+      tdv = new window.DashboardItem(device);
+    }
     this.dashboardArray.push(tdv);
     $(tdv.el).hide().appendTo(this.el).fadeIn(200);
     //$(this.el).append(tdv.el).hide().fadeIn(2000);

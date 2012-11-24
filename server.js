@@ -194,9 +194,7 @@ function handleOutType(outType, msg){
 }
 
 function processMsg(outType, msg){
-  console.log("processings somthing1")
   var patt = /{.*}/
-  console.log("processings somthing2")
   var toReplace = patt.exec(msg)
   if (toReplace != null){
     for (var i = toReplace.length - 1; i >= 0; i--) {
@@ -204,7 +202,6 @@ function processMsg(outType, msg){
         return false
     };
   }
-  console.log("processings somthing3")
   return true
 }
 
@@ -215,9 +212,7 @@ function handleReplace(outType, msg, toReplace){
 
     property = toReplace.substring(endOfIndex + 1, toReplace.length - 1)
 
-    console.log("processings somthing2.5")
     Device.findById(id, function (err, device) {
-      console.log("processings somthing2.8: " + property)
       if (device[property] != null){
         msg = msg.replace(toReplace, device[property])
       } else {

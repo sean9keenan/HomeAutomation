@@ -121,7 +121,7 @@ window.DeviceSettingsAnalog = Backbone.View.extend({
     this.model = model;
   },
   render: function() {
-    $(this.el).html('<p> Something!!! </p>');
+    $(this.el).html('');
     return this;
   },
   saveChanges: function(pinNum) {

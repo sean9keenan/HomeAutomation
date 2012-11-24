@@ -90,113 +90,115 @@ window.DimmableDashboard = Backbone.View.extend({
     this.model.destroy({ silent: true });
   },
   initDial: function( dimmableThis ) {
-
+        dimmableThis.canCall = true
+        dimmableThis.beenUpdated = true
+        dimmableThis.mostRecentE = null
+        dimmableThis.ignoreNextValue = false;
     YUI().use('dial', function(Y) {
 
-        // var sceneH = Y.one('#scene').get('region').height,
-        // subSea = 450,
-        // viewFrameH = Y.one('#view_frame').get('region').height -2,
-        // zeroPt = 100,
-        // originY = -sceneH + subSea + viewFrameH - zeroPt;
+      // var sceneH = Y.one('#scene').get('region').height,
+      // subSea = 450,
+      // viewFrameH = Y.one('#view_frame').get('region').height -2,
+      // zeroPt = 100,
+      // originY = -sceneH + subSea + viewFrameH - zeroPt;
 
-        // Y.one('#scene').setStyle('top', originY + 'px');
+      // Y.one('#scene').setStyle('top', originY + 'px');
 
 
-        dimmableThis.ignoreNextValue = false;
-        /**
-        * The Dial's valueChange event is passed to this.
-        * sets the CSS top value of the pictoral scene of the earth to the hubble.
-        * This scene is an absolute positioned div inside another div with
-        * overflow set to hidden.
-        */
-        setSceneY = function(e) {
-            // Y.one('#scene').setStyle('top', (originY + (e.newVal * 10)) + 'px');
-            if (dimmableThis.ignoreNextValue == false){
-              if (canCall) {
-                dimmableThis.model.save({ value: e.newVal });
-                canCall = false
-                beenUpdated = true
-                setTimeout(function(){
-                  canCall = true;
-                  if (!beenUpdated) {
-                    dimmableThis.model.save({ value: dial.get('value') });
-                    beenUpdated = true
-                  }
-                }, 100);
-              } else {
-                beenUpdated = false;
+
+      /**
+      * The Dial's valueChange event is passed to this.
+      * sets the CSS top value of the pictoral scene of the earth to the hubble.
+      * This scene is an absolute positioned div inside another div with
+      * overflow set to hidden.
+      */
+      dimmableThis.onUpdate = onUpdate = function(e) {
+        // Y.one('#scene').setStyle('top', (originY + (e.newVal * 10)) + 'px');
+        if (dimmableThis.ignoreNextValue == false){
+          if (dimmableThis.canCall) {
+            // console.log(e.newVal + "vs: " + dial.get('value'))
+            dimmableThis.model.save({ value: e.newVal });
+            dimmableThis.canCall = false
+            dimmableThis.beenUpdated = true
+            setTimeout(function(){
+              dimmableThis.canCall = true;
+              if (!dimmableThis.beenUpdated && dimmableThis.mostRecentE != null) {
+                dimmableThis.onUpdate(dimmableThis.mostRecentE)
               }
-            } else {
-              dimmableThis.ignoreNextValue = false;
-            }
+            }, 100);
+          } else {
+            dimmableThis.beenUpdated = false;
+            dimmableThis.mostRecentE = e;
+          }
+        } else {
+          dimmableThis.ignoreNextValue = false;
         }
+      }
 
-        var dial = new Y.Dial({
-            min:0,
-            max:255,
-            stepsPerRevolution:275,
-            value: dimmableThis.model.get('value'),
-            diameter: 100,
-            minorStep: 1,
-            majorStep: 10,
-            decimalPlaces: 0, 
-            strings:{label:'Power:', resetStr: 'On/Off', tooltipHandle: 'Drag to set'},
-            // construction-time event subscription
-            after : {
-                valueChange: Y.bind( setSceneY, dial )
-            }
-        });
+      var dial = new Y.Dial({
+        min:0,
+        max:255,
+        stepsPerRevolution:275,
+        value: dimmableThis.model.get('value'),
+        diameter: 100,
+        minorStep: 1,
+        majorStep: 10,
+        decimalPlaces: 0, 
+        strings:{label:'Power:', resetStr: 'On/Off', tooltipHandle: 'Drag to set'},
+        // construction-time event subscription
+        after : {
+          valueChange: Y.bind( onUpdate, dial )
+        }
+      });
 
-        dimmableThis.setValueFunc = function(val){
-          if (dial.get('value') != val){
-            dimmableThis.ignoreNextValue = true;
-            dial.set('value',val);
+      dimmableThis.setValueFunc = function(val){
+        if (dial.get('value') != val){
+          dimmableThis.ignoreNextValue = true;
+          dial.set('value',val);
+        }
+      }
+
+      dimmableThis.removeDial = function(){
+        dial.destroy();
+      }
+
+      dial._resetDial = function(e){
+        if(e){
+          e.stopPropagation(); //[#2530206] need to add so mousedown doesn't propagate to ring and move the handle
+        }
+        console.log(this.get('value'));
+        value = this.get('value')
+        if (value != 0){
+          window.lastNonZeroValue = value
+          this.set('value', 0);
+        } else {
+          if (window.lastNonZeroValue){
+            this.set('value', window.lastNonZeroValue)
+          } else {
+            this._setToMax();
           }
         }
+        this._handleNode.focus();
 
-        dimmableThis.removeDial = function(){
-          dial.destroy();
-        }
+      }
+      $('#dim' + dimmableThis.model.id).livequery(function(){
+        dial.render('#dim' + dimmableThis.model.id);
+      })
 
-        dial._resetDial = function(e){
-            if(e){
-                e.stopPropagation(); //[#2530206] need to add so mousedown doesn't propagate to ring and move the handle
-            }
-            console.log(this.get('value'));
-            value = this.get('value')
-            if (value != 0){
-                window.lastNonZeroValue = value
-                this.set('value', 0);
-            } else {
-                if (window.lastNonZeroValue){
-                    this.set('value', window.lastNonZeroValue)
-                } else {
-                    this._setToMax();
-                }
-            }
-            this._handleNode.focus();
+      // Function that calls a method in Dial that sets its value to the value of the max config attribute 
+      // Other methods available include,
+      // _setToMin(), _resetDial(), _incrMinor(), _decrMinor(), _incrMajor(), _decrMajor(),  
+      var setDialToMax = function(e){
+        e.preventDefault();
+        this._setToMax();
+      }
 
-        }
-        $('#dim' + dimmableThis.model.id).livequery(function(){
-          dial.render('#dim' + dimmableThis.model.id);
-        })
-
-        // Function that calls a method in Dial that sets its value to the value of the max config attribute 
-        // Other methods available include,
-        // _setToMin(), _resetDial(), _incrMinor(), _decrMinor(), _incrMajor(), _decrMajor(),  
-        var setDialToMax = function(e){
-            e.preventDefault();
-            this._setToMax();
-        }
-
-        
-        // Subscribe to the click of the "Hubble" anchor, passing the dial as the 'this'
-        Y.on('click', setDialToMax, '#a-hubble', dial);
+      
+      // Subscribe to the click of the "Hubble" anchor, passing the dial as the 'this'
+      Y.on('click', setDialToMax, '#a-hubble', dial);
 
     });
   }
 });
 
-canCall = true
-beenUpdated = true
 
