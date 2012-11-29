@@ -1,0 +1,3 @@
+Defining the Arduino action device standard:
+
+Goal: Bind Device.id.property <-> 
