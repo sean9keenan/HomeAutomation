@@ -1,3 +1,5 @@
+var arduinoPort = 82;
+
 var http = require('http'),
     fs   = require('fs'),
     jQuery   = require('jquery'),
@@ -177,7 +179,7 @@ server.addListener("connection", function(connection){
   });
 });
 
-server.listen(80);
+server.listen(arduinoPort);
 
 
 function handleOutType(outType, msg){
