@@ -1,3 +1,20 @@
 Defining the Arduino action device standard:
 
-Goal: Bind Device.id.property <-> 
+Goal: Bind Device.id.property to Arduino Stated
+
+Arduino - Large device with certain pins, and a device identifier
+
+Modules - Things like accelerometer, lights, switch
+  compatible devices - Things like "Arduino", "Link Node"
+    compatible pins, compatible sub versions (v3.0+), ect
+  Operating pins - Requires 4 pins with "analog type", perhaps list all possible pin combinations under compatible pins for the device
+  Accessor - Get the current state of this module (get lights status)
+  Setters - Set the current state of this module (set lights on)
+
+
+
+
+
+
+Arduino Sync Action:
+Make Server Request, given it's IP address, we can reconize if it's the same area as the requesting device. If that fails we can ask them to input a serial number given to them. The device (Arduino ID) is then synced to that account

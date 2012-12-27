@@ -1,0 +1,32 @@
+# This file allows traffic incoming on port 80 to be rerouted based on incoming subdomains
+# This is important because the arduinos and website run from seperate processes, which can't share ports
+# Install appache on Ubuntu using:
+# sudo apt-get install apache2
+# sudo apt-get install libapache2-mod-proxy-html
+# This file needs to be located at "sudo vim /etc/apache2/sites-enabled/000-default"
+
+LoadModule proxy_module /usr/lib/apache2/modules/mod_proxy.so
+LoadModule proxy_http_module /usr/lib/apache2/modules/mod_proxy_http.so
+
+NameVirtualHost *:80
+
+# www
+<VirtualHost *:80>
+  ServerName www.skeenan.com
+  ProxyPass             /      http://localhost:81/
+  ProxyPassReverse      /      http://localhost:81/
+</VirtualHost>
+
+# xp
+<VirtualHost *:80>
+  ServerName xp.skeenan.com
+  ProxyPass             /      http://localhost:82/
+  ProxyPassReverse      /      http://localhost:82/
+</VirtualHost>
+
+# link
+<VirtualHost *:80>
+  ServerName link.skeenan.com
+  ProxyPass             /      http://localhost:83/
+  ProxyPassReverse      /      http://localhost:83/
+</VirtualHost>
