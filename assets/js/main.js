@@ -6,6 +6,7 @@ window.Router = Backbone.Router.extend({
     "devices/:id": "devices",
     "devices": "devices",
     "dashboard": "dashboard",
+    "settings": "settings",
     '*path':  'notFound'
   },
 
@@ -74,6 +75,15 @@ window.Router = Backbone.Router.extend({
 
   },
 
+  settings: function () {
+    if (!this.settingsView) {
+        this.settingsView = new SettingsView();
+        this.settingsView.render();
+    }
+    $('#content').html(this.settingsView.el);
+    // this.headerView.select('settings-menu');
+  },
+
   contact: function () {
     if (!this.contactView) {
         this.contactView = new ContactView();
@@ -101,7 +111,8 @@ templateLoader.load(["ContactView", "HomeView", "HeaderView", "DashboardView",
     "LoggedInDropdownView", "LoginDropdownView", "DeviceFrameView", "DashboardItem",
     "DeviceNavItem", "NotFoundView", "DeviceSettingsFrame",
     "DeviceSettings/DeviceSettingsArduino", "DeviceSettings/DeviceSettingsAdvanced",
-    "DeviceSettings/DeviceSettingsMain", "DashboardItems/DimmableDashboard"],
+    "DeviceSettings/DeviceSettingsMain", "DashboardItems/DimmableDashboard",
+    "SettingsView"],
     function () {
         app = new Router();
         Backbone.history.start();

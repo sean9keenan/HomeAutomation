@@ -6,6 +6,7 @@ var http = require('http'),
     util = require('./util'),
     devices = util.boards,
     conf = util.conf,
+    fb   = util.fb,
     io   = require('socket.io').listen(8080), // for npm, otherwise use require('./path/to/socket.io') 
     ws = require("websocket-server");
 

@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Cache manifest version 0.0.3
+# Cache manifest version 0.0.7
 index.html
 test.html
 css/bootstrap-responsive.css
@@ -34,6 +34,7 @@ js/views/home.js
 js/views/loggedInDropdown.js
 js/views/loginDropdown.js
 js/views/notFound.js
+js/views/settings.js
 lib/backbone.0.5.3.min.js
 lib/backbone.iobind.min.js
 lib/backbone.iosync.min.js
@@ -55,6 +56,7 @@ tpl/LoginDropdownView.html
 tpl/MessageAlert.html
 tpl/NotFoundView.html
 tpl/ProductDetailView.html
+tpl/SettingsView.html
 tpl/DashboardItems/DimmableDashboard.html
 tpl/DeviceSettings/DeviceSettingsAdvanced.html
 tpl/DeviceSettings/DeviceSettingsArduino.html

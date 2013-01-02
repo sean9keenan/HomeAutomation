@@ -2,9 +2,11 @@
   "name": "linkAutomation",
   "version": "0.1.0-0",
   "dependencies": {
+    "express": "2.5.8",
     "websocket-server": ">= 0.0.1",
     "jquery": ">= 0.0.1",
     "socket.io": ">= 0.0.1",
+    "request": ">= 2.10.0",
     "mongoose": ">=0.0.1"
   },
   "domains": [
