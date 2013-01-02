@@ -1,4 +1,6 @@
-window.socket = io.connect('http://xp.skeenan.com:8080', {
+window.socketAddress = 'http://xp.skeenan.com:8080';
+
+window.socket = io.connect(window.socketAddress, {
   // 'connect timeout': 1
 });
 
