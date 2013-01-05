@@ -7,7 +7,8 @@
     "jquery": ">= 0.0.1",
     "socket.io": ">= 0.0.1",
     "request": ">= 2.10.0",
-    "mongoose": ">=0.0.1"
+    "mongoose": ">=0.0.1",
+    "bouncy": ">=0.0.1"
   },
   "domains": [
     "pixelboard.in",

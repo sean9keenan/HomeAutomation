@@ -81,6 +81,7 @@ window.Router = Backbone.Router.extend({
         this.settingsView.render();
     }
     $('#content').html(this.settingsView.el);
+    this.settingsView.delegateEvents();
     // this.headerView.select('settings-menu');
   },
 

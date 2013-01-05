@@ -1,11 +1,12 @@
  window.SettingsView = Backbone.View.extend({
 
   initialize:function () {
+    _.bindAll(this, 'update');
     console.log('Initializing Settings View');
   },
 
   events:{
-    "click #update":"update"
+    'click #update': 'update'
   },
 
   render:function () {
@@ -15,11 +16,12 @@
   },
 
   update:function () {
-    window.socket.disconnect();
-    if ($("#address").val != null){
-      window.socket = io.connect($("#address").val)
+    if ($("#address").val() != null){
+      window.socket.disconnect();
+      window.setNewSocketAddress($("#address").val())
+      window.setCookie("serverAddr", $("#address").val(), 365);
+      console.log("Connecting to: " + window.socketAddress);
     }
   }
-
 
 });
