@@ -1,4 +1,4 @@
-var arduinoPort = 82;
+var arduinoPort = 8889;
 
 var http = require('http'),
     fs   = require('fs'),
@@ -12,6 +12,26 @@ var http = require('http'),
 
 conf.db = util.parseConf(conf);
 var db = util.db(conf);
+
+
+var bouncy = require('bouncy');
+
+var server = bouncy(function (req, res, bounce) {
+    if (req.headers.host === 'www.skeenan.com') {
+        bounce(81);
+    }
+    else if (req.headers.host === 'xp.skeenan.com') {
+        bounce(82);
+    }
+    else if (req.headers.host === 'link.skeenan.com') {
+        bounce(83);
+    }
+    else {
+        res.statusCode = 404;
+        res.end('no such host');
+    }
+});
+server.listen(80);
 
 /**
  * our socket transport events
