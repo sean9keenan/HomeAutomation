@@ -10,6 +10,7 @@ char deviceId[] = "deviceId: 1";
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 char server[] = "xp.skeenan.com";//"echo.websocket.org";//
+unsigned int port = 8889;
 WebSocketClient client;
 
 boolean onMacbook = true;
@@ -186,7 +187,7 @@ void openConnection() {
   
   Serial.println("Began Listening on Ethernet");
   delay(1000);
-  bool result = client.connect(server);//, "/", 80);
+  bool result = client.connect(server, "/", port);
   if (result) {
     Serial.println("Connected Client to websserver:");
     Serial.println(result);
