@@ -14,7 +14,7 @@ wget --delete-after https://dynamicdns.park-your-domain.com/update?host=www&doma
 wget --delete-after https://dynamicdns.park-your-domain.com/update?host=link&domain=skeenan.com&password=ac6cf112524348b5b6d1fa257320f35a &
 
 # Start a simple python server for static content for home automation
-cd /home/sean/Dropbox/Public/HomeAutomation/assets; nohup sudo python -m SimpleHTTPServer 83 > /home/sean/nohupAutomation.out &
+#cd /home/sean/Dropbox/Public/HomeAutomation/assets; nohup sudo python -m SimpleHTTPServer 83 > /home/sean/nohupAutomation.out &
 
 # Start a simple python server for static content for www.skeenan.com
 cd /home/sean/Dropbox/Public/skeenan; nohup sudo python -m SimpleHTTPServer 81 > /home/sean/nohupSkeenan.out &

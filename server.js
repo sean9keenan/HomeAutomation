@@ -1,12 +1,14 @@
 var arduinoPort = 8889;
 
 var http = require('http'),
+    express = require('express'),
     fs   = require('fs'),
     jQuery   = require('jquery'),
     util = require('./util'),
     devices = util.boards,
     conf = util.conf,
     fb   = util.fb,
+    app     = module.exports = express.createServer(),
     io   = require('socket.io').listen(8080), // for npm, otherwise use require('./path/to/socket.io') 
     ws = require("websocket-server");
 
@@ -32,6 +34,9 @@ var server = bouncy(function (req, res, bounce) {
     }
 });
 server.listen(80);
+
+app.use(express.static(__dirname + '/assets'));
+app.listen(83);
 
 /**
  * our socket transport events
