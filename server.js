@@ -11,13 +11,13 @@ var http    = require('http'),
     app     = module.exports = express.createServer(),
     io      = require('socket.io').listen(8080), // for npm, otherwise use require('./path/to/socket.io') 
     ws      = require("websocket-server"),
-
 // Constants
     max_n   = 50;
 
 conf.db = util.parseConf(conf);
 var db = util.db(conf);
 
+var pingMinutes = 1;
 
 var bouncy = require('bouncy');
 
