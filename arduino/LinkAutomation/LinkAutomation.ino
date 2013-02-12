@@ -44,6 +44,7 @@ void loop() {
  // streamPins();
   
   if (!client.connected()){
+    Serial.println("Attempting to reconnect");
     openConnection();
   }
 }

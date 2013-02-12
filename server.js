@@ -1,16 +1,19 @@
 var arduinoPort = 8889;
 
-var http = require('http'),
+var http    = require('http'),
     express = require('express'),
-    fs   = require('fs'),
-    jQuery   = require('jquery'),
-    util = require('./util'),
+    fs      = require('fs'),
+    jQuery  = require('jquery'),
+    util    = require('./util'),
     devices = util.boards,
-    conf = util.conf,
-    fb   = util.fb,
+    conf    = util.conf,
+    // fb   = util.fb,
     app     = module.exports = express.createServer(),
-    io   = require('socket.io').listen(8080), // for npm, otherwise use require('./path/to/socket.io') 
-    ws = require("websocket-server");
+    io      = require('socket.io').listen(8080), // for npm, otherwise use require('./path/to/socket.io') 
+    ws      = require("websocket-server"),
+
+// Constants
+    max_n   = 50;
 
 conf.db = util.parseConf(conf);
 var db = util.db(conf);
@@ -35,8 +38,152 @@ var server = bouncy(function (req, res, bounce) {
 });
 server.listen(80);
 
-app.use(express.static(__dirname + '/assets'));
+app.set('_title', 'Link Automation');
+app.set('max_n', max_n);
+
+app.configure(function(){
+  // app.set('views', __dirname + '/views');
+  // app.set('view engine', 'jade');
+  // app.use(express.bodyParser());
+  app.use(express.cookieParser());
+  app.use(express.static(__dirname + '/assets'));
+  // app.use(express.methodOverride());
+  app.use(express.session({secret: conf.secret}));
+  //app.use(express.csrf());
+  //app.use(express.errorHandler());
+  //app.use(app.router);
+});
+
+
+
+app.all('/login', express.csrf());
+app.all('/redirect', express.csrf());
+
+app.dynamicHelpers({
+  title: function(req, res){
+    return app.set('_title');
+  },
+  _csrf: function(req, res) {
+    return req.session._csrf;
+  }
+});
+// Routes
+
+app.get('/', function(req, res){
+  // res.render('index', {
+  //   max_n: app.set('max_n'),
+  // });
+  res.sendfile('./assets/index.html');
+});
+
+app.get('/login', function(req, res){
+  // res.render('login.html', {
+  //   error: req.query.error ? true : false,
+  //   success: req.query.success ? true: false
+  // });
+  res.sendfile('./assets/login.html');
+  
+});
+
+app.post('/login', function(req, res){
+  var url = 'https://www.facebook.com/dialog/oauth?' +
+            'client_id=' + conf.fb.id +
+            '&redirect_uri=' + 'http://link.skeenan.com/redirect' +
+            '&scope=' + conf.fb.perms.join(',') +
+            '&state=' + req.session._csrf;
+  res.redirect(url);
+});
+
+app.get('/redirect', function(req, res){
+  var code = req.query.code;
+  fb.getAccessToken(conf.fb.id, conf.fb.secret, code, function(data) {
+    var accessToken = data.access_token,
+        expires = data.expires;
+    console.log('Redirect:');
+    console.log('\tdata:', data);
+    console.log('\taccessToken:', accessToken);
+    console.log('\texpires:', expires);
+    if (data && accessToken && expires) {
+      console.log('got data', data);
+      fb.getUserData(accessToken, function(userData){
+        console.log('received user data', userData, typeof(userData));
+        if (userData) {
+          console.log('getting user');
+          db.getUser(userData, accessToken, function(user){
+            console.log('got user', user);
+            if (user) {
+              user.getToken(function(token) {
+                if (token) {
+                  console.log('Successful login!');
+                  console.log(user);
+                  req.session.user = user;
+                  req.session.token = token;
+                  res.cookie('device_token', token.raw, {maxAge: 3600, path:'/login'});
+                  res.redirect('/login?success=true&token='+token.raw);
+                }
+                else {
+                  res.redirect('/login?error=true');
+                }
+              });
+            }
+            else {
+              console.log('couldn\'t get user');
+              res.redirect('/login?error=true');
+            }
+          });
+        }
+        else {
+          console.log('couldn\'t get user data');
+          res.redirect('/login?error=true')
+        }
+      });
+    }
+    else {
+      console.log('couldn\'t get access token');
+      res.redirect('/login?error=true')
+    }
+  });
+});
+
+var updateDevice = null;
+
+app.get('/performAction/*', function(req, res){
+
+  var performAction = "/performAction/"
+
+  if (req.url.length > performAction.length){
+    try {
+      var inputJSON = req.url.substr(performAction.length);
+      inputJSON = JSON.parse(decodeURIComponent(inputJSON));
+      console.log(inputJSON);
+      if (inputJSON && inputJSON.id != null){
+        console.log("Updating Device with JSON");
+        updateDevice(inputJSON, null);
+      }
+    } catch (err){
+      console.log("Invalid URL request: " + err);
+    }
+  }
+
+})
+
+app.get('/*', function(req, res){
+  res.redirect('/');
+});
+
+
+
+
 app.listen(83);
+
+
+function generatePerformAction(jsonIn){
+  var output = "http://link.skeenan.com/performAction/" + encodeURIComponent(JSON.stringify(jsonIn));
+
+}
+
+
+
 
 /**
  * our socket transport events
@@ -139,22 +286,8 @@ io.sockets.on('connection', function (socket) {
    */
 
   socket.on('devices:update', function (data, callback) {
-    
-    Device.findById(data.id, function (err, device) {
-      oldDevice = JSON.parse(JSON.stringify(device));
-      jQuery.each(data, function(i, val) {
-        device[i] = val;
-      });
-      //device.update(data);
-      device.save(function (err){
-        //This needs to be done because some msgs do db queries
-        checkState(device, oldDevice);
 
-      });
-      socket.emit('devices/' + data.id + ':update', device);
-      socket.broadcast.emit('devices/' + data.id + ':update', device);
-      callback(null, device);
-    });
+    updateDevice(data, callback);
 
     // device.set(data);
 
@@ -181,7 +314,30 @@ io.sockets.on('connection', function (socket) {
     callback(null, data);
   });
 
+  updateDevice = function (data, callback) {
+    Device.findById(data.id, function (err, device) {
+      oldDevice = JSON.parse(JSON.stringify(device));
+      jQuery.each(data, function(i, val) {
+        device[i] = val;
+      });
+      //device.update(data);
+      device.save(function (err){
+        //This needs to be done because some msgs do db queries
+        checkState(device, oldDevice);
+
+      });
+      socket.emit('devices/' + data.id + ':update', device);
+      socket.broadcast.emit('devices/' + data.id + ':update', device);
+      if (callback){
+        callback(null, device);
+      }
+    });
+  }
+
 });
+
+
+
 
 
 var arduinoCallback = null;
@@ -203,6 +359,11 @@ server.addListener("connection", function(connection){
     // server.send(connection.id, msg);
 
   });
+
+  // Crappy fix to make sure that arduino maintains a constant connection
+  setInterval(function() {
+    arduinoCallback('ping');
+  }, pingMinutes*60*1000);
 });
 
 server.listen(arduinoPort);
