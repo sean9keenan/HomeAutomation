@@ -165,6 +165,8 @@ app.get('/performAction/*', function(req, res){
     }
   }
 
+  res.redirect('/');
+
 })
 
 app.get('/*', function(req, res){
