@@ -118,7 +118,7 @@ app.post('/login', function(req, res){
 
 app.get('/redirect', function(req, res){
   var code = req.query.code;
-  fb.getAccessToken(conf.fb.di, conf.fb.secret, code, function(data) {
+  fb.getAccessToken(conf.fb.id, conf.fb.secret, code, function(data) {
     var accessToken = data.access_token,
         expires = data.expires;
     console.log('Redirect:');
