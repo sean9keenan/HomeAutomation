@@ -8,7 +8,7 @@ var http    = require('http'),
     devices = util.boards,
     conf    = util.conf,
     stache  = require('stache'),
-    // fb   = util.fb,
+    fb      = util.fb,
     app     = module.exports = express.createServer(),
     io      = require('socket.io').listen(8080), // for npm, otherwise use require('./path/to/socket.io') 
     ws      = require("websocket-server"),
@@ -32,6 +32,9 @@ var server = bouncy(function (req, res, bounce) {
     else if (req.headers.host === 'link.skeenan.com') {
         bounce(83);
     }
+    else if (req.headers.host === 'devlink.skeenan.com') {
+        bounce(84);
+    }
     else {
         res.statusCode = 404;
         res.end('no such host');
@@ -46,7 +49,7 @@ app.configure(function(){
   // app.set('views', __dirname + '/views');
   app.set('view engine', 'mustache');
   app.register('.mustache', stache);
-  // app.use(express.bodyParser());
+  app.use(express.bodyParser());
   app.use(express.cookieParser());
   app.use(express.static(__dirname + '/assets'));
   app.use(express.methodOverride());
@@ -54,7 +57,7 @@ app.configure(function(){
   //app.use(express.csrf());
 
   //For debugging
-  app.use(express.logger({format: ':method :url'}));
+  // app.use(express.logger({format: ':method :url'}));
 
 
   app.use(express.errorHandler());
