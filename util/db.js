@@ -194,8 +194,7 @@ module.exports = function(conf) {
               oauthToken : oauthToken,
               dateCreated: now,
               dateModified: now,
-              _boards: [],
-              _omments: [],
+              _sensors: [],
               _accessTokens: [],
             });
         user.update(function(err) {
