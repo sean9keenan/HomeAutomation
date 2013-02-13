@@ -41,7 +41,8 @@ void loop() {
   
   client.monitor();
   
- // streamPins();
+  // Uncomment and fix to enable steaming of pins
+  // streamPins();
   
   if (!client.connected()){
     Serial.println("Attempting to reconnect");

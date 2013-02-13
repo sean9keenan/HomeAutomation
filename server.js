@@ -7,6 +7,7 @@ var http    = require('http'),
     util    = require('./util'),
     devices = util.boards,
     conf    = util.conf,
+    stache  = require('stache'),
     // fb   = util.fb,
     app     = module.exports = express.createServer(),
     io      = require('socket.io').listen(8080), // for npm, otherwise use require('./path/to/socket.io') 
@@ -43,15 +44,21 @@ app.set('max_n', max_n);
 
 app.configure(function(){
   // app.set('views', __dirname + '/views');
-  // app.set('view engine', 'jade');
+  app.set('view engine', 'mustache');
+  app.register('.mustache', stache);
   // app.use(express.bodyParser());
   app.use(express.cookieParser());
   app.use(express.static(__dirname + '/assets'));
-  // app.use(express.methodOverride());
+  app.use(express.methodOverride());
   app.use(express.session({secret: conf.secret}));
   //app.use(express.csrf());
-  //app.use(express.errorHandler());
-  //app.use(app.router);
+
+  //For debugging
+  app.use(express.logger({format: ':method :url'}));
+
+
+  app.use(express.errorHandler());
+  app.use(app.router);
 });
 
 
@@ -59,14 +66,15 @@ app.configure(function(){
 app.all('/login', express.csrf());
 app.all('/redirect', express.csrf());
 
-app.dynamicHelpers({
-  title: function(req, res){
-    return app.set('_title');
-  },
-  _csrf: function(req, res) {
-    return req.session._csrf;
-  }
-});
+// app.dynamicHelpers({
+//   title: function(req, res){
+//     return app.set('_title');
+//   },
+//   _csrf: function(req, res) {
+//     return req.session._csrf;
+//   }
+// });
+
 // Routes
 
 app.get('/', function(req, res){
@@ -81,11 +89,22 @@ app.get('/login', function(req, res){
   //   error: req.query.error ? true : false,
   //   success: req.query.success ? true: false
   // });
-  res.sendfile('./assets/login.html');
   
+
+  // res.sendfile('./assets/login.html');
+  
+  console.log("Rendering shit n'stuff" + req.session._csrf)
+
+  res.render('login', {
+      locals: {
+          _csrf: req.session._csrf
+      }
+  });
+
 });
 
 app.post('/login', function(req, res){
+  console.log("Got a post request!!")
   var url = 'https://www.facebook.com/dialog/oauth?' +
             'client_id=' + conf.fb.id +
             '&redirect_uri=' + 'http://link.skeenan.com/redirect' +
@@ -96,7 +115,7 @@ app.post('/login', function(req, res){
 
 app.get('/redirect', function(req, res){
   var code = req.query.code;
-  fb.getAccessToken(conf.fb.id, conf.fb.secret, code, function(data) {
+  fb.getAccessToken(conf.fb.di, conf.fb.secret, code, function(data) {
     var accessToken = data.access_token,
         expires = data.expires;
     console.log('Redirect:');
