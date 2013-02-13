@@ -4,7 +4,7 @@ var qs = require('querystring'),
 function getAccessToken(id, secret, code, callback){
   var url = 'https://graph.facebook.com/oauth/access_token' +
             '?client_id=' + id + 
-            '&redirect_uri=' + 'http://pixelboard.in/redirect' +
+            '&redirect_uri=' + 'http://link.skeenan.com/redirect' +
             '&client_secret=' + secret +
             '&code=' + code;
   
