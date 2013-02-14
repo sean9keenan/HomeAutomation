@@ -45,6 +45,7 @@ void loop() {
   // streamPins();
   
   if (!client.connected()){
+    client.disconnect();
     Serial.println("Attempting to reconnect");
     openConnection();
   }
@@ -182,8 +183,12 @@ String extractParameter(String input, String key) {
 
 void openConnection() {
   if (onMacbook) {
+    
+    Serial.println("Macbook");
+    Serial.println(macIp[3]);
     Ethernet.begin(mac, macIp, googDns);
   } else {
+    Serial.println("Regular request");
     Ethernet.begin(mac);
   }
   

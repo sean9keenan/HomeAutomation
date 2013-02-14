@@ -37,7 +37,7 @@
 class WebSocketClient {
     public:
         typedef void (*DataArrivedDelegate)(WebSocketClient client, String data);
-        bool connect(char hostname[], char path[] = "/", int port = 80);
+        bool connect(char hostname[], char path[] = "/", int port = 8889);
         bool connected();
         void disconnect();
         void monitor();
