@@ -46,7 +46,7 @@ app.set('_title', 'Link Automation');
 app.set('max_n', max_n);
 
 app.configure(function(){
-  // app.set('views', __dirname + '/views');
+  app.set('views', __dirname + '/views');
   app.set('view engine', 'mustache');
   app.register('.mustache', stache);
   app.use(express.bodyParser());
