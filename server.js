@@ -207,7 +207,7 @@ function generatePerformAction(jsonIn){
 }
 
 
-
+try{
 
 /**
  * our socket transport events
@@ -568,6 +568,10 @@ function sendToArduino(device, needPinInit){
   }
 }
 
+
+} catch(err){
+  console.log(err);
+}
 
 // io.sockets.on('connection', function(socket) {
 //   socket.on('data', function(data){
