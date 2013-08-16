@@ -1,4 +1,5 @@
 var arduinoPort = 8889;
+var portListen = 8083;
 
 var http    = require('http'),
     express = require('express'),
@@ -10,7 +11,7 @@ var http    = require('http'),
     stache  = require('stache'),
     fb      = util.fb,
     app     = module.exports = express.createServer(),
-    io      = require('socket.io').listen(8080), // for npm, otherwise use require('./path/to/socket.io') 
+    io      = require('socket.io').listen(8090), // for npm, otherwise use require('./path/to/socket.io')
     ws      = require("websocket-server"),
 // Constants
     max_n   = 50;
@@ -18,29 +19,9 @@ var http    = require('http'),
 conf.db = util.parseConf(conf);
 var db = util.db(conf);
 
+// This is how often we have to ping the Arduino in order to keep the websocket
+// connection open and fast
 var pingMinutes = 1;
-
-var bouncy = require('bouncy');
-
-var server = bouncy(function (req, res, bounce) {
-    if (req.headers.host === 'www.skeenan.com') {
-        bounce(81);
-    }
-    else if (req.headers.host === 'xp.skeenan.com') {
-        bounce(82);
-    }
-    else if (req.headers.host === 'link.skeenan.com') {
-        bounce(83);
-    }
-    else if (req.headers.host === 'devlink.skeenan.com') {
-        bounce(84);
-    }
-    else {
-        res.statusCode = 404;
-        res.end('no such host');
-    }
-});
-server.listen(80);
 
 app.set('_title', 'Link Automation');
 app.set('max_n', max_n);
@@ -58,7 +39,6 @@ app.configure(function(){
 
   //For debugging
   // app.use(express.logger({format: ':method :url'}));
-
 
   app.use(express.errorHandler());
   app.use(app.router);
@@ -92,10 +72,10 @@ app.get('/login', function(req, res){
   //   error: req.query.error ? true : false,
   //   success: req.query.success ? true: false
   // });
-  
+
 
   // res.sendfile('./assets/login.html');
-  
+
   console.log("Rendering shit n'stuff" + req.session._csrf)
 
   res.render('login', {
@@ -191,14 +171,34 @@ app.get('/performAction/*', function(req, res){
 
 })
 
-app.get('/*', function(req, res){
+
+app.get('/arduinoAction/*', function(req, res){
+
+  var performAction = "/arduinoAction/"
+
+  if (req.url.length > performAction.length){
+    try {
+      var msgSend = req.url.substr(performAction.length);
+      if (arduinoCallback != null){
+        arduinoCallback(msgSend)
+      }
+    } catch (err){
+      console.log("Invalid URL request: " + err);
+    }
+  }
+
   res.redirect('/');
+
+})
+
+app.get('/*', function(req, res){
+  res.redirect('/#Dashboard');
 });
 
 
 
 
-app.listen(83);
+app.listen(portListen);
 
 
 function generatePerformAction(jsonIn){
@@ -292,7 +292,7 @@ io.sockets.on('connection', function (socket) {
         list.push(devices[i]);
         console.log(devices[i]);
       }
-      
+
       callback(null, list);
     });
 
@@ -317,7 +317,7 @@ io.sockets.on('connection', function (socket) {
 
     // var json = device._attributes;
 
-    
+
   });
 
   /**
@@ -342,7 +342,16 @@ io.sockets.on('connection', function (socket) {
     Device.findById(data.id, function (err, device) {
       oldDevice = JSON.parse(JSON.stringify(device));
       jQuery.each(data, function(i, val) {
-        device[i] = val;
+        if (i == "value" && val == 256){
+          if (device[i] > 0) {
+            device[i] = 0;
+          }
+          else {
+            device[i] = 255;
+          }
+        } else {
+          device[i] = val;
+        }
       });
       //device.update(data);
       device.save(function (err){
@@ -373,7 +382,7 @@ server.addListener("connection", function(connection){
   console.log('connect!')
 
   arduinoUpdateAllDevices();
-  
+
   arduinoCallback = function(msg) {
     server.send(connection.id, msg);
     console.log("\n\nSending to Arduino:\n" + msg)
@@ -483,7 +492,7 @@ function checkState(device, oldDevice){
         });
       }
       } catch (err) {
-      
+
       }
     }
   }
@@ -502,7 +511,7 @@ function checkInit(device){
           handleOutType(deviceJSON.outType, deviceJSON.msg);
         }
       } catch (err) {
-      
+
       }
     }
   }
@@ -514,7 +523,7 @@ function arduinoUpdateAllDevices() {
       checkInit(devices[i]);
       checkState(devices[i], null);
     }
-    
+
   });
 }
 
@@ -635,10 +644,10 @@ function sendToArduino(device, needPinInit){
 // var model = {'connection':{'connected': 'true'}};
 // var clients = [];
 
-// // socket.io 
-// io.sockets.on('connection', function(socket){ 
+// // socket.io
+// io.sockets.on('connection', function(socket){
 //   clients.push(socket);
-//   // new client is here! 
+//   // new client is here!
 //   socket.on('channel', function(msg){
 //     console.log('message:');
 //     console.log(msg);

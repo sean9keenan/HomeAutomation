@@ -1,4 +1,4 @@
-window.socketAddress = 'http://xp.skeenan.com:8080';
+window.socketAddress = 'http://websocket.skeenan.com:80';
 
 window.setNewSocketAddress = function(address) {
   window.socketAddress = address;
